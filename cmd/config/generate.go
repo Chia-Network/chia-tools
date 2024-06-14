@@ -20,7 +20,7 @@ var generateCmd = &cobra.Command{
 			fmt.Printf("Error marshalling config: %s\n", err.Error())
 			os.Exit(1)
 		}
-		fmt.Printf(string(out))
+		fmt.Print(string(out))
 	},
 }
 
