@@ -7,6 +7,7 @@ import (
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,10 +32,20 @@ var generateCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		os.WriteFile("config.yml", out, 0655)
+		err = os.WriteFile(viper.GetString("output"), out, 0655)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
 	},
 }
 
 func init() {
+	var (
+		outputFile string
+	)
+
+	generateCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "config.yml", "Output file for config")
+	cobra.CheckErr(viper.BindPFlag("output", generateCmd.PersistentFlags().Lookup("output")))
+
 	configCmd.AddCommand(generateCmd)
 }
