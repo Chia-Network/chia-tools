@@ -26,6 +26,20 @@ var generateCmd = &cobra.Command{
 			log.Fatalln(err.Error())
 		}
 
+		valuesToSet := viper.GetStringMapString("set")
+		for path, value := range valuesToSet {
+			pathMap := config.ParsePathsFromStrings([]string{path}, false)
+			var key string
+			var pathSlice []string
+			for key, pathSlice = range pathMap {
+				break
+			}
+			err = cfg.SetFieldByPath(pathSlice, value)
+			if err != nil {
+				log.Fatalf("Error setting path `%s` to `%s`: %s\n", key, value, err.Error())
+			}
+		}
+
 		out, err := yaml.Marshal(cfg)
 		if err != nil {
 			fmt.Printf("Error marshalling config: %s\n", err.Error())
@@ -42,10 +56,14 @@ var generateCmd = &cobra.Command{
 func init() {
 	var (
 		outputFile string
+		setValues  map[string]string
 	)
 
 	generateCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "config.yml", "Output file for config")
+	generateCmd.PersistentFlags().StringToStringVarP(&setValues, "set", "s", nil, "Paths and values to set in the config")
+
 	cobra.CheckErr(viper.BindPFlag("output", generateCmd.PersistentFlags().Lookup("output")))
+	cobra.CheckErr(viper.BindPFlag("set", generateCmd.PersistentFlags().Lookup("set")))
 
 	configCmd.AddCommand(generateCmd)
 }
