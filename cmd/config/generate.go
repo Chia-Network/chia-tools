@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -42,8 +41,7 @@ var generateCmd = &cobra.Command{
 
 		out, err := yaml.Marshal(cfg)
 		if err != nil {
-			fmt.Printf("Error marshalling config: %s\n", err.Error())
-			os.Exit(1)
+			log.Fatalf("Error marshalling config: %s\n", err.Error())
 		}
 
 		err = os.WriteFile(viper.GetString("output"), out, 0655)
