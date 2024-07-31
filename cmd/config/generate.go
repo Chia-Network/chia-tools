@@ -52,13 +52,8 @@ var generateCmd = &cobra.Command{
 }
 
 func init() {
-	var (
-		outputFile string
-		setValues  map[string]string
-	)
-
-	generateCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "config.yml", "Output file for config")
-	generateCmd.PersistentFlags().StringToStringVarP(&setValues, "set", "s", nil, "Paths and values to set in the config")
+	generateCmd.PersistentFlags().StringP("output", "o", "config.yml", "Output file for config")
+	generateCmd.PersistentFlags().StringToStringP("set", "s", nil, "Paths and values to set in the config")
 
 	cobra.CheckErr(viper.BindPFlag("output", generateCmd.PersistentFlags().Lookup("output")))
 	cobra.CheckErr(viper.BindPFlag("set", generateCmd.PersistentFlags().Lookup("set")))
