@@ -4,6 +4,7 @@ go 1.22.4
 
 require (
 	github.com/chia-network/go-chia-libs v0.8.4
+	github.com/chia-network/go-modules v0.0.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	gopkg.in/yaml.v3 v3.0.1
