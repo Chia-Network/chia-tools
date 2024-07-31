@@ -39,3 +39,19 @@ sudo apt-get update
 
 sudo apt-get install chia-tools
 ```
+
+### Docker
+
+Prebuilt docker images are available.
+
+Latest Release: `docker pull ghcr.io/chia-network/chia-tools:latest`
+
+Latest Main Branch: `docker pull ghcr.io/chia-network/chia-tools:main`
+
+Specific Tag: `docker pull ghcr.io/chia-network/chia-tools:0.1.0`
+
+Note that you can choose a partial tag as well if you want the latest of a particular series:
+
+Latest 0.1.z version: `docker pull ghcr.io/chia-network/chia-tools:0.1`
+
+Latest 0.y.z version: `docker pull ghcr.io/chia-network/chia-tools:0`
