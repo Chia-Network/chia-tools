@@ -1,10 +1,10 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
+	"github.com/chia-network/go-modules/pkg/slogs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -17,12 +17,12 @@ var generateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := config.LoadDefaultConfig()
 		if err != nil {
-			log.Fatalln(err.Error())
+			slogs.Logr.Fatal("error loading default config", "error", err)
 		}
 
 		err = cfg.FillValuesFromEnvironment()
 		if err != nil {
-			log.Fatalln(err.Error())
+			slogs.Logr.Fatal("error filling values from environment", "error", err)
 		}
 
 		valuesToSet := viper.GetStringMapString("set")
@@ -35,18 +35,18 @@ var generateCmd = &cobra.Command{
 			}
 			err = cfg.SetFieldByPath(pathSlice, value)
 			if err != nil {
-				log.Fatalf("Error setting path `%s` to `%s`: %s\n", key, value, err.Error())
+				slogs.Logr.Fatal("error setting path in config", "key", key, "value", value, "error", err)
 			}
 		}
 
 		out, err := yaml.Marshal(cfg)
 		if err != nil {
-			log.Fatalf("Error marshalling config: %s\n", err.Error())
+			slogs.Logr.Fatal("error marshalling config", "error", err)
 		}
 
 		err = os.WriteFile(viper.GetString("output"), out, 0655)
 		if err != nil {
-			log.Fatalln(err.Error())
+			slogs.Logr.Fatal("error writing output file", "error", err)
 		}
 	},
 }
