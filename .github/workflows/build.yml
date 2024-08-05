@@ -71,7 +71,7 @@ jobs:
             --output-type deb \
             --name chia-tools \
             --architecture ${{ matrix.GOARCH }} \
-            --version "${{ env.RELEASE_TAG || github.sha }}" \
+            --version "${{ env.RELEASE_TAG || github.run_number }}" \
             --url "https://github.com/Chia-Network/chia-tools" \
             --maintainer "Chia Network Inc <hello@chia.net>" \
             --description "Collection of CLI tools for working with Chia Blockchain" \
