@@ -51,6 +51,7 @@ var deleteMirrorsCmd = &cobra.Command{
 			}
 
 			for _, coinID := range ownedMirrors {
+				slogs.Logr.Info("deleting mirror", "store", subscription, "mirror", coinID.String())
 				resp, _, err := client.DataLayerService.DeleteMirror(&rpc.DatalayerDeleteMirrorOptions{
 					CoinID: coinID.String(),
 					Fee:    feeMojos,
