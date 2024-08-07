@@ -14,6 +14,7 @@ import (
 var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a new chia configuration file",
+	Example: "chia-tools config generate --set full_node.port=58444 --set full_node.target_peer_count=10 --output ~/.chia/mainnet/config/config.yaml",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := config.LoadDefaultConfig()
 		if err != nil {
