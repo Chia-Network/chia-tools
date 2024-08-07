@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -15,6 +16,16 @@ var fixMirrorsCmd = &cobra.Command{
 	Use:     "fix-mirrors",
 	Short:   "For all owned mirrors, replaces one url with a new url",
 	Example: "chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0.00000001",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		newURL := viper.GetString("fix-mirror-new-url")
+		oldURL := viper.GetString("fix-mirror-bad-url")
+
+		if newURL == "" || oldURL == "" {
+			return fmt.Errorf("must provide both --new-url and --old-url flags")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := rpc.NewClient(rpc.ConnectionModeHTTP, rpc.WithAutoConfig())
 		if err != nil {
@@ -24,7 +35,7 @@ var fixMirrorsCmd = &cobra.Command{
 		// Figure out what fee we are using
 		feeXCH := viper.GetFloat64("fix-mirror-fee")
 		feeMojos := uint64(feeXCH * 1000000000000)
-		slogs.Logr.Debug("fee for all transactions", "xch", feeXCH, "mojos", feeMojos)
+		slogs.Logr.Info("fee for all transactions", "xch", feeXCH, "mojos", feeMojos)
 
 		subscriptions, _, err := client.DataLayerService.GetSubscriptions(&rpc.DatalayerGetSubscriptionsOptions{})
 		if err != nil {
