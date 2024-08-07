@@ -14,6 +14,7 @@ import (
 var deleteMirrorsCmd = &cobra.Command{
 	Use:   "delete-mirrors",
 	Short: "Deletes all owned mirrors for all datalayer subscriptions",
+	Example: "chia-tools data delete-mirrors --all\nchia-tools data delete-mirrors --id abcd1234",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		all := viper.GetBool("delete-mirror-all")
 		subID := viper.GetString("delete-mirror-id")
