@@ -47,7 +47,7 @@ chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_co
 			slogs.Logr.Fatal("error filling values from environment", "error", err)
 		}
 
-		valuesToSet := viper.GetStringMapString("set")
+		valuesToSet := viper.GetStringMapString("edit-set")
 		for path, value := range valuesToSet {
 			pathMap := config.ParsePathsFromStrings([]string{path}, false)
 			var key string
@@ -76,7 +76,7 @@ chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_co
 func init() {
 	editCmd.PersistentFlags().StringToStringP("set", "s", nil, "Paths and values to set in the config")
 
-	cobra.CheckErr(viper.BindPFlag("set", editCmd.PersistentFlags().Lookup("set")))
+	cobra.CheckErr(viper.BindPFlag("edit-set", editCmd.PersistentFlags().Lookup("set")))
 
 	configCmd.AddCommand(editCmd)
 }
