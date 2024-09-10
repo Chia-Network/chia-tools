@@ -9,8 +9,8 @@ import (
 
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generates a full set of certificates for chia-blockchain",
+	Use:     "generate",
+	Short:   "Generates a full set of certificates for chia-blockchain",
 	Example: "chia-tools certs generate --output ~/.chia/mainnet/config/ssl",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := tls.GenerateAllCerts(viper.GetString("cert-output"))

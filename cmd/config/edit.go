@@ -13,8 +13,8 @@ import (
 
 // editCmd generates a new chia config
 var editCmd = &cobra.Command{
-	Use:     "edit",
-	Short:   "Edit an existing chia configuration file",
+	Use:   "edit",
+	Short: "Edit an existing chia configuration file",
 	Example: `chia-tools config edit ~/.chia/mainnet/config/config.yaml --set full_node.port=58444 --set full_node.target_peer_count=10
 
 # The following version will discover the config file by inspecting CHIA_ROOT or using the default CHIA_ROOT
