@@ -29,6 +29,8 @@ var generateCmd = &cobra.Command{
 			if _, err := os.Stat(caCertPath); err != nil {
 				if errors.Is(err, os.ErrNotExist) {
 					slogs.Logr.Fatal("private_ca.crt does not exist at the provided path", "path", caCertPath)
+				} else {
+					slogs.Logr.Fatal("error checking private_ca.crt", "error", err)
 				}
 			}
 
@@ -44,6 +46,8 @@ var generateCmd = &cobra.Command{
 			if _, err := os.Stat(caKeyPath); err != nil {
 				if errors.Is(err, os.ErrNotExist) {
 					slogs.Logr.Fatal("private_ca.key does not exist at the provided path", "path", caKeyPath)
+				} else {
+					slogs.Logr.Fatal("error checking private_ca.key", "error", err)
 				}
 			}
 
