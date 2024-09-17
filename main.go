@@ -5,6 +5,7 @@ import (
 	_ "github.com/chia-network/chia-tools/cmd/certs"
 	_ "github.com/chia-network/chia-tools/cmd/config"
 	_ "github.com/chia-network/chia-tools/cmd/datalayer"
+	_ "github.com/chia-network/chia-tools/cmd/testnet"
 )
 
 func main() {
