@@ -207,7 +207,7 @@ func init() {
 	cobra.CheckErr(viper.BindPFlag("switch-introducer", networkCmd.PersistentFlags().Lookup("introducer")))
 	cobra.CheckErr(viper.BindPFlag("switch-dns-introducer", networkCmd.PersistentFlags().Lookup("dns-introducer")))
 	cobra.CheckErr(viper.BindPFlag("switch-bootstrap-peer", networkCmd.PersistentFlags().Lookup("bootstrap-peer")))
-	cobra.CheckErr(viper.BindPFlag("switch-full-node-port", networkCmd.PersistentFlags().Lookup("full-node-part")))
+	cobra.CheckErr(viper.BindPFlag("switch-full-node-port", networkCmd.PersistentFlags().Lookup("full-node-port")))
 
 	networkCmd.AddCommand(switchCmd)
 }
