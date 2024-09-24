@@ -11,6 +11,7 @@ import (
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/rpc"
 	"github.com/chia-network/go-modules/pkg/slogs"
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
 
@@ -111,6 +112,19 @@ var switchCmd = &cobra.Command{
 			walletPeersFilePath = fmt.Sprintf("wallet/db/wallet_peers-%s.dat", networkName)
 			bootstrapPeers = []string{fmt.Sprintf("node-%s.chia.net", networkName)}
 		}
+		if introFlag := cmd.Flags().Lookup("introducer").Value.String(); introFlag != "" {
+			introducerHost = introFlag
+		}
+		if dnsIntroFlag := cmd.Flags().Lookup("dns-introducer").Value.String(); dnsIntroFlag != "" {
+			dnsIntroducerHost = dnsIntroFlag
+		}
+		if bootPeer := cmd.Flags().Lookup("bootstrap-peer").Value.String(); bootPeer != "" {
+			bootstrapPeers = []string{bootPeer}
+		}
+		if portFlag := cast.ToUint16(cmd.Flags().Lookup("full-node-port").Value.String()); portFlag != 0 {
+			fullNodePort = portFlag
+		}
+
 		pathUpdates := map[string]any{
 			"selected_network": networkName,
 			"farmer.full_node_peers": []config.Peer{
@@ -176,6 +190,11 @@ var switchCmd = &cobra.Command{
 }
 
 func init() {
+	networkCmd.PersistentFlags().String("introducer", "", "Override the default values for introducer host")
+	networkCmd.PersistentFlags().String("dns-introducer", "", "Override the default values for dns-introducer host")
+	networkCmd.PersistentFlags().String("bootstrap-peer", "", "Override the default value for seeder bootstrap peer")
+	networkCmd.PersistentFlags().Uint16("full-node-port", 0, "Override the default values for the full node port")
+
 	networkCmd.AddCommand(switchCmd)
 }
 
