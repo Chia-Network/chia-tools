@@ -43,6 +43,15 @@ var switchCmd = &cobra.Command{
 			slogs.Logr.Fatal("current network name and new network name are the same", "current", currentNetwork, "new", networkName)
 		}
 
+		// Ensure we have network constants for the network trying to be swapped to
+		if _, ok := cfg.NetworkOverrides.Constants[networkName]; !ok {
+			slogs.Logr.Fatal("selected network does not exist in config's network override constants", "network", networkName)
+		}
+		if _, ok := cfg.NetworkOverrides.Config[networkName]; !ok {
+			slogs.Logr.Fatal("selected network does not exist in config's network override config", "network", networkName)
+		}
+
+
 		// Ensure a folder to store the current network's sub-epoch-summaries and height-to-hash files exists
 		cacheFileDirOldNetwork := path.Join(chiaRoot, "db", currentNetwork)
 		cacheFileDirNewNetwork := path.Join(chiaRoot, "db", networkName)
