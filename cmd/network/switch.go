@@ -11,8 +11,8 @@ import (
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/rpc"
 	"github.com/chia-network/go-modules/pkg/slogs"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var switchCmd = &cobra.Command{
@@ -121,16 +121,16 @@ var switchCmd = &cobra.Command{
 			walletPeersFilePath = fmt.Sprintf("wallet/db/wallet_peers-%s.dat", networkName)
 			bootstrapPeers = []string{fmt.Sprintf("node-%s.chia.net", networkName)}
 		}
-		if introFlag := cmd.Flags().Lookup("introducer").Value.String(); introFlag != "" {
+		if introFlag := viper.GetString("switch-introducer"); introFlag != "" {
 			introducerHost = introFlag
 		}
-		if dnsIntroFlag := cmd.Flags().Lookup("dns-introducer").Value.String(); dnsIntroFlag != "" {
+		if dnsIntroFlag := viper.GetString("switch-dns-introducer"); dnsIntroFlag != "" {
 			dnsIntroducerHost = dnsIntroFlag
 		}
-		if bootPeer := cmd.Flags().Lookup("bootstrap-peer").Value.String(); bootPeer != "" {
+		if bootPeer := viper.GetString("switch-bootstrap-peer"); bootPeer != "" {
 			bootstrapPeers = []string{bootPeer}
 		}
-		if portFlag := cast.ToUint16(cmd.Flags().Lookup("full-node-port").Value.String()); portFlag != 0 {
+		if portFlag := viper.GetUint16("switch-full-node-port"); portFlag != 0 {
 			fullNodePort = portFlag
 		}
 
@@ -203,6 +203,11 @@ func init() {
 	networkCmd.PersistentFlags().String("dns-introducer", "", "Override the default values for dns-introducer host")
 	networkCmd.PersistentFlags().String("bootstrap-peer", "", "Override the default value for seeder bootstrap peer")
 	networkCmd.PersistentFlags().Uint16("full-node-port", 0, "Override the default values for the full node port")
+
+	cobra.CheckErr(viper.BindPFlag("switch-introducer", networkCmd.PersistentFlags().Lookup("introducer")))
+	cobra.CheckErr(viper.BindPFlag("switch-dns-introducer", networkCmd.PersistentFlags().Lookup("dns-introducer")))
+	cobra.CheckErr(viper.BindPFlag("switch-bootstrap-peer", networkCmd.PersistentFlags().Lookup("bootstrap-peer")))
+	cobra.CheckErr(viper.BindPFlag("switch-full-node-port", networkCmd.PersistentFlags().Lookup("full-node-part")))
 
 	networkCmd.AddCommand(switchCmd)
 }
