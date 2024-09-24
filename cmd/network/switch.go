@@ -18,7 +18,7 @@ import (
 var switchCmd = &cobra.Command{
 	Use:     "switch",
 	Short:   "Switches the active network on this machine",
-	Example: "chia-tools network switch testneta",
+	Example: "chia-tools network switch testnet11",
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		networkName := args[0]
