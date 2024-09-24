@@ -1,14 +1,12 @@
 package config
 
 import (
-	"os"
 	"path"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-modules/pkg/slogs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 // editCmd generates a new chia config
@@ -61,14 +59,9 @@ chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_co
 			}
 		}
 
-		out, err := yaml.Marshal(cfg)
+		err = cfg.Save()
 		if err != nil {
-			slogs.Logr.Fatal("error marshalling config", "error", err)
-		}
-
-		err = os.WriteFile(cfgPath, out, 0655)
-		if err != nil {
-			slogs.Logr.Fatal("error writing output file", "error", err)
+			slogs.Logr.Fatal("error saving config", "error", err)
 		}
 	},
 }
