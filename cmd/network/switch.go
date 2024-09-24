@@ -166,6 +166,11 @@ var switchCmd = &cobra.Command{
 			slogs.Logr.Fatal("error saving chia config", "error", err)
 		}
 
+		err = removeFileIfExists(path.Join(chiaRoot, "db", peersFilePath))
+		if err != nil {
+			slogs.Logr.Error("error removing old peers.dat file", "path", peersFilePath, "error", err)
+		}
+
 		slogs.Logr.Info("Complete")
 	},
 }
@@ -213,5 +218,23 @@ func moveAndOverwriteFile(sourcePath, destPath string) error {
 	}
 
 	slogs.Logr.Debug("moved successfully", "source", sourcePath, "dest", destPath)
+	return nil
+}
+
+func removeFileIfExists(path string) error {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			slogs.Logr.Debug("source path doesn't exist, skipping delete", "path", path)
+			return nil
+		}
+		return fmt.Errorf("error checking source file: %w", err)
+	}
+
+	slogs.Logr.Debug("removing file at path", "path", path)
+	err := os.Remove(path)
+	if err != nil {
+		return fmt.Errorf("error removing file: %w", err)
+	}
+
 	return nil
 }
