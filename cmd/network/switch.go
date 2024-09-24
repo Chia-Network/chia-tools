@@ -20,9 +20,6 @@ var switchCmd = &cobra.Command{
 	Example: "chia-tools network switch testneta",
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// Track if we stopped the full node, and start it again at the end if so
-		stoppedFullNode := false
-
 		networkName := args[0]
 		slogs.Logr.Info("Swapping to network", "network", networkName)
 
@@ -68,28 +65,12 @@ var switchCmd = &cobra.Command{
 			slogs.Logr.Fatal("error initializing RPC client", "error", err)
 		}
 
-		slogs.Logr.Debug("checking if full node is running")
-		fullNodeState, _, err := rpcClient.DaemonService.IsRunning(&rpc.IsRunningOptions{Service: rpc.ServiceFullNameNode})
+		slogs.Logr.Debug("Attempting to stop chia services if running")
+		_, _, err = rpcClient.DaemonService.Exit()
 		if err != nil {
 			if !isConnectionRefused(err) {
-				slogs.Logr.Fatal("error checking full node status", "error", err)
+				slogs.Logr.Fatal("error stopping chia services", "error", err)
 			}
-			// Was connection refused, so just give a mock fullNodeState
-			fullNodeState = &rpc.IsRunningResponse{
-				IsRunning: false,
-			}
-		}
-		if fullNodeState.IsRunning {
-			slogs.Logr.Info("Stopping full node")
-			stopResult, _, err := rpcClient.DaemonService.StopService(&rpc.StopServiceOptions{Service: rpc.ServiceFullNameNode})
-			if err != nil {
-				slogs.Logr.Fatal("error stopping full node service", "error", err)
-			}
-			if !stopResult.Success {
-				slogs.Logr.Fatal("unknown error stopping full node. Stop chia services manually and try again")
-			}
-			slogs.Logr.Info("Successfully stopped full node service")
-			stoppedFullNode = true
 		}
 
 		// Safe to move files now
@@ -183,19 +164,6 @@ var switchCmd = &cobra.Command{
 		err = cfg.Save()
 		if err != nil {
 			slogs.Logr.Fatal("error saving chia config", "error", err)
-		}
-
-		if stoppedFullNode {
-			// Start full node
-			slogs.Logr.Info("Starting full node")
-			startResult, _, err := rpcClient.DaemonService.StartService(&rpc.StartServiceOptions{Service: rpc.ServiceFullNameNode})
-			if err != nil {
-				slogs.Logr.Error("error starting full node", "error", err)
-			}
-			if !startResult.Success {
-				slogs.Logr.Error("Unknown error starting full node")
-			}
-			slogs.Logr.Info("Successfully started full node")
 		}
 
 		slogs.Logr.Info("Complete")
