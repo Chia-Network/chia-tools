@@ -75,7 +75,7 @@ var switchCmd = &cobra.Command{
 			slogs.Logr.Fatal("error initializing RPC client", "error", err)
 		}
 
-		slogs.Logr.Debug("Attempting to stop chia services if running")
+		slogs.Logr.Info("Ensuring chia services are stopped")
 		_, _, err = rpcClient.DaemonService.Exit()
 		if err != nil {
 			if !isConnectionRefused(err) {
