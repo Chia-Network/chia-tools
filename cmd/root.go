@@ -12,11 +12,16 @@ import (
 )
 
 var cfgFile string
+var (
+	gitVersion string
+	buildTime  string
+)
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "chia-tools",
 	Short: "Collection of CLI tools for working with Chia Blockchain",
+	Version: fmt.Sprintf("%s (%s)", gitVersion, buildTime),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
