@@ -3,7 +3,7 @@ module github.com/chia-network/chia-tools
 go 1.22.4
 
 require (
-	github.com/chia-network/go-chia-libs v0.15.5
+	github.com/chia-network/go-chia-libs v0.15.6
 	github.com/chia-network/go-modules v0.0.7
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1

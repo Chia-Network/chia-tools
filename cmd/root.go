@@ -19,8 +19,8 @@ var (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "chia-tools",
-	Short: "Collection of CLI tools for working with Chia Blockchain",
+	Use:     "chia-tools",
+	Short:   "Collection of CLI tools for working with Chia Blockchain",
 	Version: fmt.Sprintf("%s (%s)", gitVersion, buildTime),
 }
 

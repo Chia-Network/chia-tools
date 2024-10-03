@@ -51,7 +51,6 @@ var switchCmd = &cobra.Command{
 			slogs.Logr.Fatal("selected network does not exist in config's network override config", "network", networkName)
 		}
 
-
 		// Ensure a folder to store the current network's sub-epoch-summaries and height-to-hash files exists
 		cacheFileDirOldNetwork := path.Join(chiaRoot, "db", currentNetwork)
 		cacheFileDirNewNetwork := path.Join(chiaRoot, "db", networkName)
