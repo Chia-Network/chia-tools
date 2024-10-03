@@ -3,6 +3,7 @@ package datalayer
 import (
 	"encoding/json"
 	"os"
+	"strings"
 
 	"github.com/chia-network/go-chia-libs/pkg/rpc"
 	"github.com/chia-network/go-modules/pkg/slogs"
@@ -22,10 +23,15 @@ var bulkSubCmd = &cobra.Command{
 			slogs.Logr.Fatal("error creating chia RPC client", "error", err)
 		}
 
-		jsonFile := viper.GetString("bulksub-file")
-		content, err := os.ReadFile(jsonFile)
-		if err != nil {
-			slogs.Logr.Fatal("Unable to read input file", "error", err)
+		var content []byte
+		if len(args) != 0 {
+			content = []byte(strings.Join(args, " "))
+		} else {
+			jsonFile := viper.GetString("bulksub-file")
+			content, err = os.ReadFile(jsonFile)
+			if err != nil {
+				slogs.Logr.Fatal("Unable to read input file", "error", err)
+			}
 		}
 
 		subs := &rpc.DatalayerGetSubscriptionsResponse{}
