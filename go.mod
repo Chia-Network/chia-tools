@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/chia-network/go-chia-libs v0.16.0
-	github.com/chia-network/go-modules v0.0.7
+	github.com/chia-network/go-modules v0.0.8
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
