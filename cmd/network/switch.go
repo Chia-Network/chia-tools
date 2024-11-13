@@ -47,7 +47,11 @@ var switchCmd = &cobra.Command{
 		if _, ok := cfg.NetworkOverrides.Constants[networkName]; !ok {
 			slogs.Logr.Fatal("selected network does not exist in config's network override constants", "network", networkName)
 		}
-		if _, ok := cfg.NetworkOverrides.Config[networkName]; !ok {
+		var (
+			netConfig config.NetworkConfig
+			ok bool
+		)
+		if netConfig, ok = cfg.NetworkOverrides.Config[networkName]; !ok {
 			slogs.Logr.Fatal("selected network does not exist in config's network override config", "network", networkName)
 		}
 
@@ -128,6 +132,10 @@ var switchCmd = &cobra.Command{
 		}
 		if bootPeer := viper.GetString("switch-bootstrap-peer"); bootPeer != "" {
 			bootstrapPeers = []string{bootPeer}
+		}
+		// If there is a port in the config, use that, but still allow the flag to be the final say
+		if netConfig.DefaultFullNodePort != 0 {
+			fullNodePort = netConfig.DefaultFullNodePort
 		}
 		if portFlag := viper.GetUint16("switch-full-node-port"); portFlag != 0 {
 			fullNodePort = portFlag
