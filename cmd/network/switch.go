@@ -43,7 +43,10 @@ func init() {
 
 // retainedSettings are the settings we want to keep track of when switching networks so we can swap back to them in the future
 type retainedSettings struct {
-	DNSServers []string `json:"dns_servers"`
+	DNSServers     []string      `json:"dns_servers"`
+	BootstrapPeers []string      `json:"bootstrap_peers"`
+	StaticPeers    []string      `json:"static_peers"`
+	FullNodePeers  []config.Peer `json:"full_node_peers"`
 }
 
 // SwitchNetwork implements the logic to swap networks
@@ -98,7 +101,10 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	}
 
 	previousSettings := retainedSettings{
-		DNSServers: cfg.FullNode.DNSServers,
+		DNSServers:     cfg.FullNode.DNSServers,
+		BootstrapPeers: cfg.Seeder.BootstrapPeers,
+		StaticPeers:    cfg.Seeder.StaticPeers,
+		FullNodePeers:  cfg.FullNode.FullNodePeers,
 	}
 	marshalled, err := json.Marshal(previousSettings)
 	if err != nil {
@@ -167,9 +173,11 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	introducerHost := "introducer.chia.net"
 	dnsIntroducerHosts := []string{"dns-introducer.chia.net"}
 	fullNodePort := uint16(8444)
+	var fullnodePeers []config.Peer
 	peersFilePath := "db/peers.dat"
 	walletPeersFilePath := "wallet/db/wallet_peers.dat"
 	bootstrapPeers := []string{"node.chia.net"}
+	var staticPeers []string
 	if networkName != "mainnet" {
 		introducerHost = fmt.Sprintf("introducer-%s.chia.net", networkName)
 		dnsIntroducerHosts = []string{fmt.Sprintf("dns-introducer-%s.chia.net", networkName)}
@@ -184,6 +192,15 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 		slogs.Logr.Info("restoring stored settings for this network")
 		if len(settingsToRestore.DNSServers) > 0 {
 			dnsIntroducerHosts = settingsToRestore.DNSServers
+		}
+		if len(settingsToRestore.BootstrapPeers) > 0 {
+			bootstrapPeers = settingsToRestore.BootstrapPeers
+		}
+		if len(settingsToRestore.StaticPeers) > 0 {
+			staticPeers = settingsToRestore.StaticPeers
+		}
+		if len(settingsToRestore.FullNodePeers) > 0 {
+			fullnodePeers = settingsToRestore.FullNodePeers
 		}
 	}
 
@@ -216,12 +233,14 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 		"full_node.dns_servers":          dnsIntroducerHosts,
 		"full_node.peers_file_path":      peersFilePath,
 		"full_node.port":                 fullNodePort,
+		"full_node.full_node_peers":      fullnodePeers,
 		"full_node.introducer_peer.host": introducerHost,
 		"full_node.introducer_peer.port": fullNodePort,
 		"introducer.port":                fullNodePort,
 		"seeder.port":                    fullNodePort,
 		"seeder.other_peers_port":        fullNodePort,
 		"seeder.bootstrap_peers":         bootstrapPeers,
+		"seeder.static_peers":            staticPeers,
 		"timelord.full_node_peers": []config.Peer{
 			{
 				Host: "localhost",
