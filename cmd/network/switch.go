@@ -69,7 +69,7 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	}
 	var (
 		netConfig config.NetworkConfig
-		ok bool
+		ok        bool
 	)
 	if netConfig, ok = cfg.NetworkOverrides.Config[networkName]; !ok {
 		slogs.Logr.Fatal("selected network does not exist in config's network override config", "network", networkName)
