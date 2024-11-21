@@ -88,3 +88,29 @@ func TestNetworkSwitch(t *testing.T) {
 	assert.Equal(t, config.Peer{Host: "introducer-unittestnet.chia.net", Port: port}, cfg.Wallet.IntroducerPeer)
 	assert.Equal(t, "wallet/db/wallet_peers-unittestnet.dat", cfg.Wallet.WalletPeersFilePath)
 }
+
+func TestNetworkSwitch_SettingRetention(t *testing.T) {
+	cmd.InitLogs()
+	setupDefaultConfig(t)
+	cfg, err := config.GetChiaConfig()
+	assert.NoError(t, err)
+	assert.Equal(t, "mainnet", *cfg.SelectedNetwork)
+
+	// Set some custom dns introducers, and ensure they are back when swapping away and back to mainnet
+	cfg.FullNode.DNSServers = []string{"dns-mainnet-1.example.com", "dns-mainnet-2.example.com"}
+	err = cfg.Save()
+	assert.NoError(t, err)
+
+	// reload config from disk to ensure the dns servers were persisted
+	cfg, err = config.GetChiaConfig()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"dns-mainnet-1.example.com", "dns-mainnet-2.example.com"}, cfg.FullNode.DNSServers)
+
+	network.SwitchNetwork("unittestnet", false)
+	network.SwitchNetwork("mainnet", false)
+
+	// reload config from disk
+	cfg, err = config.GetChiaConfig()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"dns-mainnet-1.example.com", "dns-mainnet-2.example.com"}, cfg.FullNode.DNSServers)
+}
