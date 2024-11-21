@@ -135,14 +135,14 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	introducerHost := "introducer.chia.net"
 	dnsIntroducerHost := "dns-introducer.chia.net"
 	fullNodePort := uint16(8444)
-	peersFilePath := "peers.dat"
+	peersFilePath := "db/peers.dat"
 	walletPeersFilePath := "wallet/db/wallet_peers.dat"
 	bootstrapPeers := []string{"node.chia.net"}
 	if networkName != "mainnet" {
 		introducerHost = fmt.Sprintf("introducer-%s.chia.net", networkName)
 		dnsIntroducerHost = fmt.Sprintf("dns-introducer-%s.chia.net", networkName)
 		fullNodePort = uint16(58444)
-		peersFilePath = fmt.Sprintf("peers-%s.dat", networkName)
+		peersFilePath = fmt.Sprintf("db/peers-%s.dat", networkName)
 		walletPeersFilePath = fmt.Sprintf("wallet/db/wallet_peers-%s.dat", networkName)
 		bootstrapPeers = []string{fmt.Sprintf("node-%s.chia.net", networkName)}
 	}
