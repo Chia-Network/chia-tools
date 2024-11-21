@@ -76,7 +76,7 @@ func TestNetworkSwitch(t *testing.T) {
 	assert.Equal(t, []config.Peer{localpeer}, cfg.Farmer.FullNodePeers)
 	assert.Equal(t, "db/blockchain_v2_unittestnet.sqlite", cfg.FullNode.DatabasePath)
 	assert.Equal(t, []string{"dns-introducer-unittestnet.chia.net"}, cfg.FullNode.DNSServers)
-	assert.Equal(t, "peers-unittestnet.dat", cfg.FullNode.PeersFilePath)
+	assert.Equal(t, "db/peers-unittestnet.dat", cfg.FullNode.PeersFilePath)
 	assert.Equal(t, port, cfg.FullNode.Port)
 	assert.Equal(t, config.Peer{Host: "introducer-unittestnet.chia.net", Port: port}, cfg.FullNode.IntroducerPeer)
 	assert.Equal(t, port, cfg.Introducer.Port)
