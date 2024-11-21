@@ -35,7 +35,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	cobra.OnInitialize(initLogs)
+	cobra.OnInitialize(InitLogs)
 
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.chia-tools.yaml)")
 	RootCmd.PersistentFlags().String("log-level", "info", "The log-level for the application, can be one of info, warn, error, debug.")
@@ -68,6 +68,7 @@ func initConfig() {
 	}
 }
 
-func initLogs() {
+// InitLogs sets up the logger
+func InitLogs() {
 	slogs.Init(viper.GetString("log-level"))
 }
