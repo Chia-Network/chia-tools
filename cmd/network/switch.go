@@ -43,10 +43,11 @@ func init() {
 
 // retainedSettings are the settings we want to keep track of when switching networks so we can swap back to them in the future
 type retainedSettings struct {
-	DNSServers     []string      `json:"dns_servers"`
-	BootstrapPeers []string      `json:"bootstrap_peers"`
-	StaticPeers    []string      `json:"static_peers"`
-	FullNodePeers  []config.Peer `json:"full_node_peers"`
+	DNSServers          []string      `json:"dns_servers"`
+	BootstrapPeers      []string      `json:"bootstrap_peers"`
+	StaticPeers         []string      `json:"static_peers"`
+	FullNodePeers       []config.Peer `json:"full_node_peers"`
+	WalletFullNodePeers []config.Peer `json:"wallet_full_node_peers"`
 }
 
 // SwitchNetwork implements the logic to swap networks
@@ -101,10 +102,11 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	}
 
 	previousSettings := retainedSettings{
-		DNSServers:     cfg.FullNode.DNSServers,
-		BootstrapPeers: cfg.Seeder.BootstrapPeers,
-		StaticPeers:    cfg.Seeder.StaticPeers,
-		FullNodePeers:  cfg.FullNode.FullNodePeers,
+		DNSServers:          cfg.FullNode.DNSServers,
+		BootstrapPeers:      cfg.Seeder.BootstrapPeers,
+		StaticPeers:         cfg.Seeder.StaticPeers,
+		FullNodePeers:       cfg.FullNode.FullNodePeers,
+		WalletFullNodePeers: cfg.Wallet.FullNodePeers,
 	}
 	marshalled, err := json.Marshal(previousSettings)
 	if err != nil {
@@ -174,6 +176,7 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	dnsIntroducerHosts := []string{"dns-introducer.chia.net"}
 	fullNodePort := uint16(8444)
 	var fullnodePeers []config.Peer
+	var walletFullNodePeers []config.Peer
 	peersFilePath := "db/peers.dat"
 	walletPeersFilePath := "wallet/db/wallet_peers.dat"
 	bootstrapPeers := []string{"node.chia.net"}
@@ -201,6 +204,9 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 		}
 		if len(settingsToRestore.FullNodePeers) > 0 {
 			fullnodePeers = settingsToRestore.FullNodePeers
+		}
+		if len(settingsToRestore.WalletFullNodePeers) > 0 {
+			walletFullNodePeers = settingsToRestore.WalletFullNodePeers
 		}
 	}
 
@@ -247,13 +253,8 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 				Port: fullNodePort,
 			},
 		},
-		"wallet.dns_servers": dnsIntroducerHosts,
-		"wallet.full_node_peers": []config.Peer{
-			{
-				Host: "localhost",
-				Port: fullNodePort,
-			},
-		},
+		"wallet.dns_servers":            dnsIntroducerHosts,
+		"wallet.full_node_peers":        ensureAtLeastLocalPeer(walletFullNodePeers, fullNodePort),
 		"wallet.introducer_peer.host":   introducerHost,
 		"wallet.introducer_peer.port":   fullNodePort,
 		"wallet.wallet_peers_file_path": walletPeersFilePath,
@@ -284,6 +285,17 @@ func SwitchNetwork(networkName string, checkForRunningNode bool) {
 	}
 
 	slogs.Logr.Info("Complete")
+}
+
+func ensureAtLeastLocalPeer(peers []config.Peer, port uint16) []config.Peer {
+	if len(peers) == 0 {
+		peers = append(peers, config.Peer{
+			Host: "localhost",
+			Port: port,
+		})
+	}
+
+	return peers
 }
 
 func isConnectionRefused(err error) bool {
