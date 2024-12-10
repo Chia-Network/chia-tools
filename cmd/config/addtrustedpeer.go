@@ -23,7 +23,10 @@ var (
 var addTrustedPeerCmd = &cobra.Command{
 	Use:     "add-trusted-peer",
 	Short:   "Adds a trusted peer to the config file",
-	Example: `chia-tools config add-trusted-peer 1.2.3.4`,
+	Example: `chia-tools config add-trusted-peer 1.2.3.4
+
+# The following version will also override the port to use when connecting to this peer
+chia-tools config add-trusted-peer 1.2.3.4 18444`,
 	Run: func(cmd *cobra.Command, args []string) {
 		chiaRoot, err := config.GetChiaRootPath()
 		if err != nil {
