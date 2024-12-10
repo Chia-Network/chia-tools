@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"net"
 	"path"
+	"strconv"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/peerprotocol"
@@ -29,7 +30,9 @@ var addTrustedPeerCmd = &cobra.Command{
 			slogs.Logr.Fatal("Unable to determine CHIA_ROOT", "error", err)
 		}
 
-		if len(args) != 1 {
+		// 1: Peer IP
+		// 2: Optional, port
+		if len(args) < 1 || len(args) > 2 {
 			slogs.Logr.Fatal("Unexpected number of arguments provided")
 		}
 
@@ -45,6 +48,16 @@ var addTrustedPeerCmd = &cobra.Command{
 		}
 
 		peer := args[0]
+		port := cfg.FullNode.Port
+		if len(args) > 2 {
+			port64, err := strconv.ParseUint(args[1], 10, 16)
+			if err != nil {
+				slogs.Logr.Fatal("Invalid port provided")
+			}
+			port = uint16(port64)
+		}
+
+
 		ip := net.ParseIP(peer)
 		if ip == nil {
 			slogs.Logr.Fatal("Invalid IP address", "id", peer)
@@ -60,7 +73,7 @@ var addTrustedPeerCmd = &cobra.Command{
 		}
 		conn, err := peerprotocol.NewConnection(
 			&ip,
-			peerprotocol.WithPeerPort(cfg.FullNode.Port),
+			peerprotocol.WithPeerPort(port),
 			peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
 			peerprotocol.WithPeerKeyPair(*keypair),
 		)
@@ -80,7 +93,7 @@ var addTrustedPeerCmd = &cobra.Command{
 
 		peerToAdd := config.Peer{
 			Host: ip.String(),
-			Port: cfg.FullNode.Port,
+			Port: port,
 		}
 
 		foundPeer := false
