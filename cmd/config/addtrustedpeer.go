@@ -14,6 +14,10 @@ import (
 	"github.com/chia-network/chia-tools/internal/utils"
 )
 
+var (
+	skipConfirm bool
+)
+
 // addTrustedPeerCmd Adds a trusted peer to the config
 var addTrustedPeerCmd = &cobra.Command{
 	Use:     "add-trusted-peer",
@@ -69,7 +73,7 @@ var addTrustedPeerCmd = &cobra.Command{
 		}
 		peerIDStr := hex.EncodeToString(peerID[:])
 		slogs.Logr.Info("peer id received", "peer", peerIDStr)
-		if !utils.ConfirmAction("Would you like trust this peer? (y/N)") {
+		if !utils.ConfirmAction("Would you like trust this peer? (y/N)", skipConfirm) {
 			slogs.Logr.Error("Cancelled")
 		}
 		cfg.Wallet.TrustedPeers[peerIDStr] = "Does_not_matter"
@@ -100,5 +104,6 @@ var addTrustedPeerCmd = &cobra.Command{
 }
 
 func init() {
+	addTrustedPeerCmd.Flags().BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation")
 	configCmd.AddCommand(addTrustedPeerCmd)
 }
