@@ -49,7 +49,7 @@ var addTrustedPeerCmd = &cobra.Command{
 
 		peer := args[0]
 		port := cfg.FullNode.Port
-		if len(args) > 2 {
+		if len(args) > 1 {
 			port64, err := strconv.ParseUint(args[1], 10, 16)
 			if err != nil {
 				slogs.Logr.Fatal("Invalid port provided")
@@ -57,12 +57,11 @@ var addTrustedPeerCmd = &cobra.Command{
 			port = uint16(port64)
 		}
 
-
 		ip := net.ParseIP(peer)
 		if ip == nil {
 			slogs.Logr.Fatal("Invalid IP address", "id", peer)
 		}
-		slogs.Logr.Info("Attempting to get peer id", "peer", peer)
+		slogs.Logr.Info("Attempting to get peer id", "peer", peer, "port", port)
 
 		keypair, err := cfg.FullNode.SSL.LoadPublicKeyPair(chiaRoot)
 		if err != nil {
