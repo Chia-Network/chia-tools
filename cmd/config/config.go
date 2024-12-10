@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/chia-network/chia-tools/cmd"
 )
@@ -13,5 +14,8 @@ var configCmd = &cobra.Command{
 }
 
 func init() {
+	configCmd.PersistentFlags().String("config", "", "existing config file to use (default is to look in $CHIA_ROOT)")
+	cobra.CheckErr(viper.BindPFlag("config", configCmd.PersistentFlags().Lookup("config")))
+
 	cmd.RootCmd.AddCommand(configCmd)
 }

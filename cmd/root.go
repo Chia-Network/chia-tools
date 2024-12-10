@@ -11,7 +11,6 @@ import (
 	"github.com/chia-network/go-modules/pkg/slogs"
 )
 
-var cfgFile string
 var (
 	gitVersion string
 	buildTime  string
@@ -37,26 +36,20 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(InitLogs)
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.chia-tools.yaml)")
 	RootCmd.PersistentFlags().String("log-level", "info", "The log-level for the application, can be one of info, warn, error, debug.")
 	cobra.CheckErr(viper.BindPFlag("log-level", RootCmd.PersistentFlags().Lookup("log-level")))
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+	// Find home directory.
+	home, err := os.UserHomeDir()
+	cobra.CheckErr(err)
 
-		// Search config in home directory with name ".chia-tools" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(".chia-tools")
-	}
+	// Search config in home directory with name ".chia-tools" (without extension).
+	viper.AddConfigPath(home)
+	viper.SetConfigType("yaml")
+	viper.SetConfigName(".chia-tools")
 
 	viper.SetEnvPrefix("CHIA_TOOLS")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))

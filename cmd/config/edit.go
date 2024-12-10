@@ -13,24 +13,22 @@ import (
 var editCmd = &cobra.Command{
 	Use:   "edit",
 	Short: "Edit an existing chia configuration file",
-	Example: `chia-tools config edit ~/.chia/mainnet/config/config.yaml --set full_node.port=58444 --set full_node.target_peer_count=10
+	Example: `chia-tools config edit --config ~/.chia/mainnet/config/config.yaml --set full_node.port=58444 --set full_node.target_peer_count=10
 
 # The following version will discover the config file by inspecting CHIA_ROOT or using the default CHIA_ROOT
 chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_count=10`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var cfgPath string
-
 		chiaRoot, err := config.GetChiaRootPath()
 		if err != nil {
 			slogs.Logr.Fatal("Unable to determine CHIA_ROOT", "error", err)
 		}
 
-		if len(args) > 1 {
+		if len(args) > 0 {
 			slogs.Logr.Fatal("Unexpected number of arguments provided")
-		} else if len(args) == 1 {
-			// Use the provided config path
-			cfgPath = args[0]
-		} else {
+		}
+
+		cfgPath := viper.GetString("config")
+		if cfgPath == "" {
 			// Use default chia root
 			cfgPath = path.Join(chiaRoot, "config", "config.yaml")
 		}
