@@ -21,8 +21,8 @@ var (
 
 // addTrustedPeerCmd Adds a trusted peer to the config
 var addTrustedPeerCmd = &cobra.Command{
-	Use:     "add-trusted-peer",
-	Short:   "Adds a trusted peer to the config file",
+	Use:   "add-trusted-peer",
+	Short: "Adds a trusted peer to the config file",
 	Example: `chia-tools config add-trusted-peer 1.2.3.4
 
 # The following version will also override the port to use when connecting to this peer
