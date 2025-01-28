@@ -2,6 +2,8 @@ package network
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"text/tabwriter"
 
@@ -40,58 +42,37 @@ var showCmd = &cobra.Command{
 		if err != nil {
 			slogs.Logr.Fatal("error initializing websocket RPC client", "error", err)
 		}
-		daemonNetwork, _, err := websocketClient.DaemonService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from daemon", "error", err)
-		}
-
-		fullNodeNetwork, _, err := rpcClient.FullNodeService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from full node", "error", err)
-		}
-
-		walletNetwork, _, err := rpcClient.WalletService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from wallet", "error", err)
-		}
-
-		farmerNetwork, _, err := rpcClient.FarmerService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from farmer", "error", err)
-		}
-
-		harvesterNetwork, _, err := rpcClient.HarvesterService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from harvester", "error", err)
-		}
-
-		crawlerNetwork, _, err := rpcClient.CrawlerService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from crawler", "error", err)
-		}
-
-		datalayerNetwork, _, err := rpcClient.DataLayerService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from dataLayer", "error", err)
-		}
-
-		timelordNetwork, _, err := rpcClient.TimelordService.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
-		if err != nil {
-			slogs.Logr.Debug("error getting network info from timelord", "error", err)
-		}
 
 		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 		_, _ = fmt.Fprintln(w, "Config\t", configNetwork)
-		_, _ = fmt.Fprintln(w, "Daemon\t", daemonNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Full Node\t", fullNodeNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Wallet\t", walletNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Farmer\t", farmerNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Harvester\t", harvesterNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Crawler\t", crawlerNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Data Layer\t", datalayerNetwork.NetworkName.OrElse("Not Running"))
-		_, _ = fmt.Fprintln(w, "Timelord\t", timelordNetwork.NetworkName.OrElse("Not Running"))
+
+		networkHelper(w, websocketClient.DaemonService, "Daemon")
+		networkHelper(w, rpcClient.FullNodeService, "Full Node")
+		networkHelper(w, rpcClient.WalletService, "Wallet")
+		networkHelper(w, rpcClient.FarmerService, "Farmer")
+		networkHelper(w, rpcClient.HarvesterService, "Harvester")
+		networkHelper(w, rpcClient.CrawlerService, "Crawler")
+		networkHelper(w, rpcClient.DataLayerService, "Data Layer")
+		networkHelper(w, rpcClient.TimelordService, "Timelord")
 		_ = w.Flush()
 	},
+}
+
+type hasNetworkName interface {
+	GetNetworkInfo(opts *rpc.GetNetworkInfoOptions) (*rpc.GetNetworkInfoResponse, *http.Response, error)
+}
+
+func networkHelper(w io.Writer, service hasNetworkName, label string) {
+	network, _, err := service.GetNetworkInfo(&rpc.GetNetworkInfoOptions{})
+	if err != nil {
+		slogs.Logr.Debug("error getting network info from daemon", "error", err)
+		network = &rpc.GetNetworkInfoResponse{}
+	}
+	if network == nil {
+		slogs.Logr.Debug("no network info found", "service", label)
+		network = &rpc.GetNetworkInfoResponse{}
+	}
+	_, _ = fmt.Fprintln(w, label, "\t", network.NetworkName.OrElse("Not Running"))
 }
 
 func init() {
