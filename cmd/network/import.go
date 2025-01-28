@@ -71,18 +71,24 @@ var importCmd = &cobra.Command{
 		}
 
 		slogs.Logr.Info("Successfully imported to config")
+
+		if viper.GetBool("net-import-switch") {
+			SwitchNetwork(network, true)
+		}
 	},
 }
 
 func init() {
 	importCmd.PersistentFlags().String("network", "", "Network name to import")
 	importCmd.PersistentFlags().StringP("url", "u", "", "URL of the remote config")
+	importCmd.PersistentFlags().Bool("switch", false, "Whether to immediately switch to the network")
 
 	cobra.CheckErr(importCmd.MarkPersistentFlagRequired("network"))
 	cobra.CheckErr(importCmd.MarkPersistentFlagRequired("url"))
 
 	cobra.CheckErr(viper.BindPFlag("net-import-network", importCmd.PersistentFlags().Lookup("network")))
 	cobra.CheckErr(viper.BindPFlag("net-import-url", importCmd.PersistentFlags().Lookup("url")))
+	cobra.CheckErr(viper.BindPFlag("net-import-switch", importCmd.PersistentFlags().Lookup("switch")))
 
 	networkCmd.AddCommand(importCmd)
 }
