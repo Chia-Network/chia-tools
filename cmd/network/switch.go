@@ -28,15 +28,15 @@ var switchCmd = &cobra.Command{
 }
 
 func init() {
-	networkCmd.PersistentFlags().String("introducer", "", "Override the default values for introducer host")
-	networkCmd.PersistentFlags().String("dns-introducer", "", "Override the default values for dns-introducer host")
-	networkCmd.PersistentFlags().String("bootstrap-peer", "", "Override the default value for seeder bootstrap peer")
-	networkCmd.PersistentFlags().Uint16("full-node-port", 0, "Override the default values for the full node port")
+	switchCmd.PersistentFlags().String("introducer", "", "Override the default values for introducer host")
+	switchCmd.PersistentFlags().String("dns-introducer", "", "Override the default values for dns-introducer host")
+	switchCmd.PersistentFlags().String("bootstrap-peer", "", "Override the default value for seeder bootstrap peer")
+	switchCmd.PersistentFlags().Uint16("full-node-port", 0, "Override the default values for the full node port")
 
-	cobra.CheckErr(viper.BindPFlag("switch-introducer", networkCmd.PersistentFlags().Lookup("introducer")))
-	cobra.CheckErr(viper.BindPFlag("switch-dns-introducer", networkCmd.PersistentFlags().Lookup("dns-introducer")))
-	cobra.CheckErr(viper.BindPFlag("switch-bootstrap-peer", networkCmd.PersistentFlags().Lookup("bootstrap-peer")))
-	cobra.CheckErr(viper.BindPFlag("switch-full-node-port", networkCmd.PersistentFlags().Lookup("full-node-port")))
+	cobra.CheckErr(viper.BindPFlag("switch-introducer", switchCmd.PersistentFlags().Lookup("introducer")))
+	cobra.CheckErr(viper.BindPFlag("switch-dns-introducer", switchCmd.PersistentFlags().Lookup("dns-introducer")))
+	cobra.CheckErr(viper.BindPFlag("switch-bootstrap-peer", switchCmd.PersistentFlags().Lookup("bootstrap-peer")))
+	cobra.CheckErr(viper.BindPFlag("switch-full-node-port", switchCmd.PersistentFlags().Lookup("full-node-port")))
 
 	networkCmd.AddCommand(switchCmd)
 }
