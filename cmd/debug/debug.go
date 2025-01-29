@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -23,6 +24,14 @@ const sizeColumnWidth = 14
 type FileInfo struct {
 	Size int64
 	Path string
+}
+
+// Exclusions - List of patterns to exclude in the default mode
+var exclusions = []string{
+	`\.DS_Store$`,
+	`data_layer/db/server_files_location.*/.*delta.*`, // Don't show delta files by default
+	`wallet/db/temp.*`,
+	`run/.*`,
 }
 
 // debugCmd represents the config command
@@ -80,6 +89,12 @@ func collectFiles(root string) []FileInfo {
 			info, err := os.Stat(path)
 			if err == nil {
 				relPath, _ := filepath.Rel(root, path)
+
+				// Apply exclusions
+				if !viper.GetBool("debug-all-files") && isExcluded(relPath) {
+					return nil // Skip this file
+				}
+
 				files = append(files, FileInfo{Size: info.Size(), Path: relPath})
 			}
 		}
@@ -89,6 +104,17 @@ func collectFiles(root string) []FileInfo {
 		slogs.Logr.Fatal("error scanning chia root")
 	}
 	return files
+}
+
+// isExcluded checks if a file path matches any exclusion pattern
+func isExcluded(path string) bool {
+	for _, pattern := range exclusions {
+		match, _ := regexp.MatchString(pattern, path)
+		if match {
+			return true
+		}
+	}
+	return false
 }
 
 // humanReadableSize converts bytes into a human-friendly format (KB, MB, GB, etc.)
@@ -107,7 +133,10 @@ func humanReadableSize(bytes int64) string {
 
 func init() {
 	debugCmd.PersistentFlags().Bool("sort", false, "Sort the files largest first")
+	debugCmd.PersistentFlags().Bool("all-files", false, "Show all files. By default, some typically small files are excluded from the output")
+
 	cobra.CheckErr(viper.BindPFlag("debug-sort", debugCmd.PersistentFlags().Lookup("sort")))
+	cobra.CheckErr(viper.BindPFlag("debug-all-files", debugCmd.PersistentFlags().Lookup("all-files")))
 
 	cmd.RootCmd.AddCommand(debugCmd)
 }
