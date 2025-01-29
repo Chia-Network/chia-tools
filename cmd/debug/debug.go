@@ -3,7 +3,6 @@ package debug
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -101,7 +100,7 @@ func runningHelper(w io.Writer, service hasVersionInfo, label string) {
 func debugPorts() {
 	cfg, err := config.GetChiaConfig()
 	if err != nil {
-		log.Println("Could not load config")
+		fmt.Println("Could not load config")
 		return
 	}
 
