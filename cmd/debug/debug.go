@@ -2,6 +2,7 @@ package debug
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
+	"github.com/chia-network/go-chia-libs/pkg/rpc"
 	"github.com/chia-network/go-modules/pkg/slogs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -53,9 +55,47 @@ var debugCmd = &cobra.Command{
 		fmt.Println(strings.Repeat("-", 60)) // Separator
 		debugPorts()
 
+		fmt.Println("\n# RPC Server Status")
+		fmt.Println(strings.Repeat("-", 60)) // Separator
+		debugRPC()
+
 		fmt.Println("\n# File Sizes")
 		debugFileSizes()
 	},
+}
+
+func debugRPC() {
+	slogs.Logr.Debug("initializing websocket client")
+	websocketClient, err := rpc.NewClient(rpc.ConnectionModeWebsocket, rpc.WithAutoConfig(), rpc.WithSyncWebsocket())
+	if err != nil {
+		slogs.Logr.Fatal("error initializing websocket RPC client", "error", err)
+	}
+	slogs.Logr.Debug("initializing http client")
+	rpcClient, err := rpc.NewClient(rpc.ConnectionModeHTTP, rpc.WithAutoConfig(), rpc.WithSyncWebsocket())
+	if err != nil {
+		slogs.Logr.Fatal("error initializing websocket RPC client", "error", err)
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+	runningHelper(w, websocketClient.DaemonService, "Daemon")
+	runningHelper(w, rpcClient.FullNodeService, "Full Node")
+	runningHelper(w, rpcClient.WalletService, "Wallet")
+	runningHelper(w, rpcClient.FarmerService, "Farmer")
+	runningHelper(w, rpcClient.HarvesterService, "Harvester")
+	runningHelper(w, rpcClient.CrawlerService, "Crawler")
+	runningHelper(w, rpcClient.DataLayerService, "Data Layer")
+	runningHelper(w, rpcClient.TimelordService, "Timelord")
+	_ = w.Flush()
+}
+
+func runningHelper(w io.Writer, service hasVersionInfo, label string) {
+	running := "Running"
+	_, _, err := service.GetVersion(&rpc.GetVersionOptions{})
+	if err != nil {
+		slogs.Logr.Debug("error getting RPC Status from daemon", "error", err)
+		running = "Not Running"
+	}
+	_, _ = fmt.Fprintln(w, label, "\t", running)
 }
 
 func debugPorts() {
