@@ -6,7 +6,11 @@ Collection of CLI tools for working with Chia Blockchain
 
 Download the correct executable file from the release page and run. If you are on debian/ubuntu, you can install using the apt repo, documented below.
 
-### Apt Repo Installation
+### Homebrew Installation (MacOS)
+
+1. `brew install chia-network/chia/chia-tools`
+
+### Apt Repo Installation (Ubuntu/Debian)
 
 #### Set up the repository
 
@@ -39,6 +43,10 @@ sudo apt-get update
 
 sudo apt-get install chia-tools
 ```
+
+### Go Install
+
+`go install github.com/chia-network/chia-tools@latest`
 
 ### Docker
 
