@@ -2,11 +2,13 @@ package debug
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-modules/pkg/slogs"
@@ -47,9 +49,35 @@ var debugCmd = &cobra.Command{
 		fmt.Println(strings.Repeat("-", 60)) // Separator
 		network.ShowNetworkInfo()
 
+		fmt.Println("\n# Port Information")
+		fmt.Println(strings.Repeat("-", 60)) // Separator
+		debugPorts()
+
 		fmt.Println("\n# File Sizes")
 		debugFileSizes()
 	},
+}
+
+func debugPorts() {
+	cfg, err := config.GetChiaConfig()
+	if err != nil {
+		log.Println("Could not load config")
+		return
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+	_, _ = fmt.Fprintln(w, "Full Node Port\t", cfg.FullNode.Port)
+	_, _ = fmt.Fprintln(w, "Full Node RPC\t", cfg.FullNode.RPCPort)
+	_, _ = fmt.Fprintln(w, "Wallet RPC\t", cfg.Wallet.RPCPort)
+	_, _ = fmt.Fprintln(w, "Farmer Port\t", cfg.Farmer.Port)
+	_, _ = fmt.Fprintln(w, "Farmer RPC\t", cfg.Farmer.RPCPort)
+	_, _ = fmt.Fprintln(w, "Harvester RPC\t", cfg.Harvester.RPCPort)
+	_, _ = fmt.Fprintln(w, "Crawler RPC\t", cfg.Seeder.CrawlerConfig.RPCPort)
+	_, _ = fmt.Fprintln(w, "Seeder Port\t", cfg.Seeder.Port)
+	_, _ = fmt.Fprintln(w, "Data Layer Host Port\t", cfg.DataLayer.HostPort)
+	_, _ = fmt.Fprintln(w, "Data Layer RPC\t", cfg.DataLayer.RPCPort)
+	_, _ = fmt.Fprintln(w, "Timelord RPC\t", cfg.Timelord.RPCPort)
+	_ = w.Flush()
 }
 
 // debugFileSizes retrieves the Chia root path and prints sorted file paths with sizes
