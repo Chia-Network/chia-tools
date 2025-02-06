@@ -14,6 +14,8 @@ import (
 	"github.com/chia-network/go-modules/pkg/slogs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/chia-network/chia-tools/internal/connect"
 )
 
 var switchCmd = &cobra.Command{
@@ -304,7 +306,13 @@ func isConnectionRefused(err error) bool {
 		if netErr.Op == "dial" {
 			var syscallError *os.SyscallError
 			if errors.As(netErr.Err, &syscallError) {
-				return syscallError.Syscall == "connect" && errors.Is(syscallError.Err, syscall.ECONNREFUSED)
+				if syscallError.Syscall == "connect" && errors.Is(syscallError.Err, syscall.ECONNREFUSED) {
+					return true
+				}
+				// Handle Windows-specific case
+				if connect.IsWindowsConnectionRefused(err) {
+					return true
+				}
 			}
 		}
 	}
