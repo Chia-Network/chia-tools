@@ -1,7 +1,8 @@
 module github.com/chia-network/chia-tools
 
-go 1.22.4
-toolchain go1.23.7
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	github.com/chia-network/go-chia-libs v0.20.6
