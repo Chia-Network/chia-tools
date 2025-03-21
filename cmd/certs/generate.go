@@ -60,7 +60,7 @@ var generateCmd = &cobra.Command{
 				slogs.Logr.Fatal("error parsing key", "error", err)
 			}
 		}
-		err := tls.GenerateAllCerts(viper.GetString("cert-output"), privateCACert, privateCAKey)
+		err := tls.GenerateAndWriteAllCerts(viper.GetString("cert-output"), privateCACert, privateCAKey)
 		if err != nil {
 			slogs.Logr.Fatal("error generating certificates", "error", err)
 		}
