@@ -12,9 +12,13 @@ import (
 
 // deleteMirrorsCmd Deletes all owned mirrors for all datalayer subscriptions
 var deleteMirrorsCmd = &cobra.Command{
-	Use:     "delete-mirrors",
-	Short:   "Deletes all owned mirrors for all datalayer subscriptions",
-	Example: "chia-tools data delete-mirrors --all\nchia-tools data delete-mirrors --id abcd1234\nchia-tools data delete-mirrors --all --dry-run",
+	Use:   "delete-mirrors",
+	Short: "Deletes all owned mirrors for all datalayer subscriptions",
+	Example: `chia-tools data delete-mirrors --all
+chia-tools data delete-mirrors --id abcd1234
+
+# Show what changes would be made without actually making them
+chia-tools data delete-mirrors --id abcd1234 --dry-run`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		all := viper.GetBool("delete-mirror-all")
 		subID := viper.GetString("delete-mirror-id")
@@ -36,10 +40,17 @@ var deleteMirrorsCmd = &cobra.Command{
 
 		all := viper.GetBool("delete-mirror-all")
 		subID := viper.GetString("delete-mirror-id")
-		dryRun := viper.GetBool("delete-mirror-dry-run")
+		dryRun := viper.GetBool("dry-run")
 
 		if dryRun {
-			slogs.Logr.Info("DRY RUN: No mirrors will be deleted")
+			slogs.Logr.Info("DRY RUN: Would delete mirrors")
+			if all {
+				slogs.Logr.Info("DRY RUN: Would delete all owned mirrors for all subscriptions")
+			} else {
+				slogs.Logr.Info("DRY RUN: Would delete mirrors for subscription", "id", subID)
+			}
+			slogs.Logr.Info("DRY RUN: No changes were made")
+			return
 		}
 
 		if all {
@@ -67,11 +78,11 @@ func deleteMirrorsForSubscription(client *rpc.Client, subscription string, feeMo
 	if err != nil {
 		slogs.Logr.Fatal("error fetching mirrors for subscription", "store", subscription, "error", err)
 	}
-	var ownedMirrors []types.Bytes32
+	var ownedMirrors []types.DatalayerMirror
 
 	for _, mirror := range mirrors.Mirrors {
 		if mirror.Ours {
-			ownedMirrors = append(ownedMirrors, mirror.CoinID)
+			ownedMirrors = append(ownedMirrors, mirror)
 		}
 	}
 
@@ -80,22 +91,31 @@ func deleteMirrorsForSubscription(client *rpc.Client, subscription string, feeMo
 		return
 	}
 
-	for _, coinID := range ownedMirrors {
-		if dryRun {
-			slogs.Logr.Info("DRY RUN: Would delete mirror", "store", subscription, "mirror", coinID.String())
-			continue
+	if dryRun {
+		slogs.Logr.Info("DRY RUN: Found owned mirrors for subscription", "store", subscription, "count", len(ownedMirrors))
+		for _, mirror := range ownedMirrors {
+			slogs.Logr.Info("DRY RUN: Would delete mirror",
+				"store", subscription,
+				"coin_id", mirror.CoinID.String(),
+				"urls", mirror.URLs)
 		}
+		return
+	}
 
-		slogs.Logr.Info("deleting mirror", "store", subscription, "mirror", coinID.String())
+	for _, mirror := range ownedMirrors {
+		slogs.Logr.Info("deleting mirror",
+			"store", subscription,
+			"coin_id", mirror.CoinID.String(),
+			"urls", mirror.URLs)
 		resp, _, err := client.DataLayerService.DeleteMirror(&rpc.DatalayerDeleteMirrorOptions{
-			CoinID: coinID.String(),
+			CoinID: mirror.CoinID.String(),
 			Fee:    feeMojos,
 		})
 		if err != nil {
-			slogs.Logr.Fatal("error deleting mirror for store", "store", subscription, "mirror", coinID, "error", err)
+			slogs.Logr.Fatal("error deleting mirror for store", "store", subscription, "coin_id", mirror.CoinID, "urls", mirror.URLs, "error", err)
 		}
 		if !resp.Success {
-			slogs.Logr.Fatal("unknown error when deleting mirror for store", "store", subscription, "mirror", coinID)
+			slogs.Logr.Fatal("unknown error when deleting mirror for store", "store", subscription, "coin_id", mirror.CoinID, "urls", mirror.URLs)
 		}
 	}
 }
@@ -104,12 +124,10 @@ func init() {
 	deleteMirrorsCmd.PersistentFlags().Float64P("fee", "m", 0, "Fee to use when deleting the mirrors. The fee is used per mirror. Units are XCH")
 	deleteMirrorsCmd.PersistentFlags().Bool("all", false, "Delete all owned mirrors for all subscriptions")
 	deleteMirrorsCmd.PersistentFlags().String("id", "", "The subscription ID to delete mirrors for")
-	deleteMirrorsCmd.PersistentFlags().Bool("dry-run", false, "Show what mirrors would be deleted without actually deleting them")
 
 	cobra.CheckErr(viper.BindPFlag("delete-mirror-fee", deleteMirrorsCmd.PersistentFlags().Lookup("fee")))
 	cobra.CheckErr(viper.BindPFlag("delete-mirror-all", deleteMirrorsCmd.PersistentFlags().Lookup("all")))
 	cobra.CheckErr(viper.BindPFlag("delete-mirror-id", deleteMirrorsCmd.PersistentFlags().Lookup("id")))
-	cobra.CheckErr(viper.BindPFlag("delete-mirror-dry-run", deleteMirrorsCmd.PersistentFlags().Lookup("dry-run")))
 
 	datalayerCmd.AddCommand(deleteMirrorsCmd)
 }
