@@ -67,20 +67,19 @@ chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0
 				for _, url := range mirror.URLs {
 					if strings.EqualFold(url, viper.GetString("fix-mirror-bad-url")) {
 						foundAnyMirror = true
-						if !dryRun {
-							waitForAvailableBalance(client, feeMojos)
-						}
 						if dryRun {
 							slogs.Logr.Info("DRY RUN: Would delete mirror", "store", sub, "mirror", mirror.CoinID.String())
-						} else {
-							slogs.Logr.Info("deleting mirror", "store", sub, "mirror", mirror.CoinID.String())
-							_, _, err := client.DataLayerService.DeleteMirror(&rpc.DatalayerDeleteMirrorOptions{
-								CoinID: mirror.CoinID.String(),
-								Fee:    viper.GetUint64("fix-mirror-fee"),
-							})
-							if err != nil {
-								slogs.Logr.Fatal("error deleting mirror", "store", sub, "mirror", mirror.CoinID.String(), "error", err)
-							}
+							return
+						}
+
+						waitForAvailableBalance(client, feeMojos)
+						slogs.Logr.Info("deleting mirror", "store", sub, "mirror", mirror.CoinID.String())
+						_, _, err := client.DataLayerService.DeleteMirror(&rpc.DatalayerDeleteMirrorOptions{
+							CoinID: mirror.CoinID.String(),
+							Fee:    viper.GetUint64("fix-mirror-fee"),
+						})
+						if err != nil {
+							slogs.Logr.Fatal("error deleting mirror", "store", sub, "mirror", mirror.CoinID.String(), "error", err)
 						}
 						break
 					}
@@ -91,26 +90,25 @@ chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0
 			// url, we consolidate down to just one
 			if foundAnyMirror {
 				mirrorAmount := viper.GetUint64("fix-mirror-amount")
-				if !dryRun {
-					waitForAvailableBalance(client, mirrorAmount+feeMojos)
-				}
 				if dryRun {
 					slogs.Logr.Info("DRY RUN: Would add replacement mirror",
 						"store", sub,
 						"url", viper.GetString("fix-mirror-new-url"),
 						"amount", mirrorAmount,
 						"fee", feeMojos)
-				} else {
-					slogs.Logr.Info("adding replacement mirror", "store", sub)
-					_, _, err = client.DataLayerService.AddMirror(&rpc.DatalayerAddMirrorOptions{
-						ID:     sub,
-						URLs:   []string{viper.GetString("fix-mirror-new-url")},
-						Amount: mirrorAmount,
-						Fee:    feeMojos,
-					})
-					if err != nil {
-						slogs.Logr.Fatal("error adding new mirror", "store", sub, "error", err)
-					}
+					return
+				}
+
+				waitForAvailableBalance(client, mirrorAmount+feeMojos)
+				slogs.Logr.Info("adding replacement mirror", "store", sub)
+				_, _, err = client.DataLayerService.AddMirror(&rpc.DatalayerAddMirrorOptions{
+					ID:     sub,
+					URLs:   []string{viper.GetString("fix-mirror-new-url")},
+					Amount: mirrorAmount,
+					Fee:    feeMojos,
+				})
+				if err != nil {
+					slogs.Logr.Fatal("error adding new mirror", "store", sub, "error", err)
 				}
 			}
 		}

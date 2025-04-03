@@ -50,14 +50,15 @@ chia-tools data bulk-subscribe -f subscriptions.json --dry-run`,
 		for _, id := range subs.StoreIDs {
 			if dryRun {
 				slogs.Logr.Info("DRY RUN: Would subscribe to store", "id", id)
-			} else {
-				slogs.Logr.Info("Subscription to store", "id", id)
-				_, _, err = client.DataLayerService.Subscribe(&rpc.DatalayerSubscribeOptions{
-					ID: id,
-				})
-				if err != nil {
-					slogs.Logr.Error("Error subscribing to datastore", "id", id, "error", err)
-				}
+				return
+			}
+
+			slogs.Logr.Info("Subscription to store", "id", id)
+			_, _, err = client.DataLayerService.Subscribe(&rpc.DatalayerSubscribeOptions{
+				ID: id,
+			})
+			if err != nil {
+				slogs.Logr.Error("Error subscribing to datastore", "id", id, "error", err)
 			}
 		}
 
