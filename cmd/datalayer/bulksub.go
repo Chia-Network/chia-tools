@@ -69,10 +69,8 @@ chia-tools data bulk-subscribe -f subscriptions.json --dry-run`,
 
 func init() {
 	bulkSubCmd.PersistentFlags().StringP("file", "f", "", "The file containing the json of subscriptions to add")
-	bulkSubCmd.PersistentFlags().Bool("dry-run", false, "Show what changes would be made without actually subscribing")
 
 	cobra.CheckErr(viper.BindPFlag("bulksub-file", bulkSubCmd.PersistentFlags().Lookup("file")))
-	cobra.CheckErr(viper.BindPFlag("dry-run", bulkSubCmd.PersistentFlags().Lookup("dry-run")))
 
 	datalayerCmd.AddCommand(bulkSubCmd)
 }

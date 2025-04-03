@@ -155,13 +155,11 @@ func init() {
 	fixMirrorsCmd.PersistentFlags().StringP("new-url", "n", "", "New mirror URL (required)")
 	fixMirrorsCmd.PersistentFlags().StringP("bad-url", "b", "", "Old mirror URL to replace (required)")
 	fixMirrorsCmd.PersistentFlags().Uint64P("amount", "a", 100, "Mirror coin amount in mojos")
-	fixMirrorsCmd.PersistentFlags().BoolP("dry-run", "d", false, "Show what changes would be made without actually fixing mirrors")
 
 	cobra.CheckErr(viper.BindPFlag("fix-mirror-fee", fixMirrorsCmd.PersistentFlags().Lookup("fee")))
 	cobra.CheckErr(viper.BindPFlag("fix-mirror-new-url", fixMirrorsCmd.PersistentFlags().Lookup("new-url")))
 	cobra.CheckErr(viper.BindPFlag("fix-mirror-bad-url", fixMirrorsCmd.PersistentFlags().Lookup("bad-url")))
 	cobra.CheckErr(viper.BindPFlag("fix-mirror-amount", fixMirrorsCmd.PersistentFlags().Lookup("amount")))
-	cobra.CheckErr(viper.BindPFlag("dry-run", fixMirrorsCmd.PersistentFlags().Lookup("dry-run")))
 
 	datalayerCmd.AddCommand(fixMirrorsCmd)
 }
