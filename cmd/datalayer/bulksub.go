@@ -50,7 +50,7 @@ chia-tools data bulk-subscribe -f subscriptions.json --dry-run`,
 		for _, id := range subs.StoreIDs {
 			if dryRun {
 				slogs.Logr.Info("DRY RUN: Would subscribe to store", "id", id)
-				return
+				continue
 			}
 
 			slogs.Logr.Info("Subscription to store", "id", id)

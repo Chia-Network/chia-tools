@@ -69,7 +69,7 @@ chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0
 						foundAnyMirror = true
 						if dryRun {
 							slogs.Logr.Info("DRY RUN: Would delete mirror", "store", sub, "mirror", mirror.CoinID.String())
-							return
+							continue
 						}
 
 						waitForAvailableBalance(client, feeMojos)
@@ -96,7 +96,7 @@ chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0
 						"url", viper.GetString("fix-mirror-new-url"),
 						"amount", mirrorAmount,
 						"fee", feeMojos)
-					return
+					continue
 				}
 
 				waitForAvailableBalance(client, mirrorAmount+feeMojos)
