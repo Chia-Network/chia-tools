@@ -13,13 +13,22 @@ import (
 
 // importCmd represents the import command
 var importCmd = &cobra.Command{
-	Use:     "import",
-	Short:   "Import a network configuration from a remote source",
-	Example: "chia-tools network import --network mytestnet --url https://example.com/my-network-config.yml",
+	Use:   "import",
+	Short: "Import a network configuration from a remote source",
+	Example: `chia-tools network import --network mytestnet --url https://example.com/my-network-config.yml
+
+# Show what changes would be made without actually importing
+chia-tools network import --network mytestnet --url https://example.com/my-network-config.yml --dry-run`,
 	Run: func(cmd *cobra.Command, args []string) {
 		network := viper.GetString("net-import-network")
 		url := viper.GetString("net-import-url")
-		slogs.Logr.Info("Importing remote network settings", "network", network, "url", url)
+		dryRun := viper.GetBool("dry-run")
+
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: Would import network settings", "network", network, "url", url)
+		} else {
+			slogs.Logr.Info("Importing remote network settings", "network", network, "url", url)
+		}
 
 		resp, err := http.Get(url)
 		if err != nil {
@@ -48,6 +57,16 @@ var importCmd = &cobra.Command{
 		}
 		if _, ok := cfg.NetworkOverrides.Config[network]; !ok {
 			slogs.Logr.Fatal("Network config not found in remote config", "network", network)
+		}
+
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: Would add network constants", "network", network)
+			slogs.Logr.Info("DRY RUN: Would add network config", "network", network)
+			if viper.GetBool("net-import-switch") {
+				slogs.Logr.Info("DRY RUN: Would switch to network", "network", network)
+			}
+			slogs.Logr.Info("DRY RUN: No changes would be made to the config file")
+			return
 		}
 
 		chiaRoot, err := config.GetChiaRootPath()

@@ -37,7 +37,10 @@ func init() {
 	cobra.OnInitialize(InitLogs)
 
 	RootCmd.PersistentFlags().String("log-level", "info", "The log-level for the application, can be one of info, warn, error, debug.")
+	RootCmd.PersistentFlags().Bool("dry-run", false, "Show what changes would be made without actually making them. For commands that modify data or configuration, this will show the old and new values.")
+
 	cobra.CheckErr(viper.BindPFlag("log-level", RootCmd.PersistentFlags().Lookup("log-level")))
+	cobra.CheckErr(viper.BindPFlag("dry-run", RootCmd.PersistentFlags().Lookup("dry-run")))
 }
 
 // initConfig reads in config file and ENV variables if set.

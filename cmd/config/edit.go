@@ -16,7 +16,10 @@ var editCmd = &cobra.Command{
 	Example: `chia-tools config edit --config ~/.chia/mainnet/config/config.yaml --set full_node.port=58444 --set full_node.target_peer_count=10
 
 # The following version will discover the config file by inspecting CHIA_ROOT or using the default CHIA_ROOT
-chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_count=10`,
+chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_count=10
+
+# Show what changes would be made without actually making them
+chia-tools config edit --set full_node.port=58444 --dry-run`,
 	Run: func(cmd *cobra.Command, args []string) {
 		chiaRoot, err := config.GetChiaRootPath()
 		if err != nil {
@@ -43,6 +46,11 @@ chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_co
 			slogs.Logr.Fatal("error filling values from environment", "error", err)
 		}
 
+		dryRun := viper.GetBool("dry-run")
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: The following changes would be made to the config file")
+		}
+
 		valuesToSet := viper.GetStringMapString("edit-set")
 		for path, value := range valuesToSet {
 			pathMap := config.ParsePathsFromStrings([]string{path}, false)
@@ -51,10 +59,30 @@ chia-tools config edit --set full_node.port=58444 --set full_node.target_peer_co
 			for key, pathSlice = range pathMap {
 				break
 			}
+
+			// Get the current value using GetFieldByPath
+			currentValue, err := cfg.GetFieldByPath(pathSlice)
+			if err != nil {
+				slogs.Logr.Info("Config value not found", "path", path)
+			}
+
+			if dryRun {
+				slogs.Logr.Info("Would change config value",
+					"path", path,
+					"current_value", currentValue,
+					"new_value", value)
+				continue
+			}
+
 			err = cfg.SetFieldByPath(pathSlice, value)
 			if err != nil {
 				slogs.Logr.Fatal("error setting path in config", "key", key, "value", value, "error", err)
 			}
+		}
+
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: No changes were made to the config file")
+			return
 		}
 
 		err = cfg.Save()

@@ -13,9 +13,12 @@ import (
 
 // fixMirrorsCmd Replaces one mirror url with another for all mirrors with the url
 var fixMirrorsCmd = &cobra.Command{
-	Use:     "fix-mirrors",
-	Short:   "For all owned mirrors, replaces one url with a new url",
-	Example: "chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0.00000001",
+	Use:   "fix-mirrors",
+	Short: "For all owned mirrors, replaces one url with a new url",
+	Example: `chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0.00000001
+
+# Show what changes would be made without actually fixing mirrors
+chia-tools data fix-mirrors -b 127.0.0.1 -n https://my-dl-domain.com -a 300 -m 0.00000001 --dry-run`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		newURL := viper.GetString("fix-mirror-new-url")
 		oldURL := viper.GetString("fix-mirror-bad-url")
@@ -35,7 +38,13 @@ var fixMirrorsCmd = &cobra.Command{
 		// Figure out what fee we are using
 		feeXCH := viper.GetFloat64("fix-mirror-fee")
 		feeMojos := uint64(feeXCH * 1000000000000)
-		slogs.Logr.Info("fee for all transactions", "xch", feeXCH, "mojos", feeMojos)
+		dryRun := viper.GetBool("dry-run")
+
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: Would use fee for all transactions", "xch", feeXCH, "mojos", feeMojos)
+		} else {
+			slogs.Logr.Info("fee for all transactions", "xch", feeXCH, "mojos", feeMojos)
+		}
 
 		subscriptions, _, err := client.DataLayerService.GetSubscriptions(&rpc.DatalayerGetSubscriptionsOptions{})
 		if err != nil {
@@ -58,6 +67,11 @@ var fixMirrorsCmd = &cobra.Command{
 				for _, url := range mirror.URLs {
 					if strings.EqualFold(url, viper.GetString("fix-mirror-bad-url")) {
 						foundAnyMirror = true
+						if dryRun {
+							slogs.Logr.Info("DRY RUN: Would delete mirror", "store", sub, "mirror", mirror.CoinID.String())
+							continue
+						}
+
 						waitForAvailableBalance(client, feeMojos)
 						slogs.Logr.Info("deleting mirror", "store", sub, "mirror", mirror.CoinID.String())
 						_, _, err := client.DataLayerService.DeleteMirror(&rpc.DatalayerDeleteMirrorOptions{
@@ -76,6 +90,15 @@ var fixMirrorsCmd = &cobra.Command{
 			// url, we consolidate down to just one
 			if foundAnyMirror {
 				mirrorAmount := viper.GetUint64("fix-mirror-amount")
+				if dryRun {
+					slogs.Logr.Info("DRY RUN: Would add replacement mirror",
+						"store", sub,
+						"url", viper.GetString("fix-mirror-new-url"),
+						"amount", mirrorAmount,
+						"fee", feeMojos)
+					continue
+				}
+
 				waitForAvailableBalance(client, mirrorAmount+feeMojos)
 				slogs.Logr.Info("adding replacement mirror", "store", sub)
 				_, _, err = client.DataLayerService.AddMirror(&rpc.DatalayerAddMirrorOptions{
@@ -88,6 +111,10 @@ var fixMirrorsCmd = &cobra.Command{
 					slogs.Logr.Fatal("error adding new mirror", "store", sub, "error", err)
 				}
 			}
+		}
+
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: No changes were made to the mirrors")
 		}
 	},
 }

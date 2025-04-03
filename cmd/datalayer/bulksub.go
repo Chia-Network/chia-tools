@@ -13,10 +13,12 @@ import (
 
 // bulkSubCmd Subscribes to multiple datastores at once using the output of chia data get_subscriptions
 var bulkSubCmd = &cobra.Command{
-	Use:     "bulk-subscribe",
-	Short:   "Subscribes to multiple datastores at once using the output of chia data get_subscriptions",
-	Example: "chia-tools data bulk-subscribe -f subscriptions.json",
-	//Args:    cobra.ExactArgs(1),
+	Use:   "bulk-subscribe",
+	Short: "Subscribes to multiple datastores at once using the output of chia data get_subscriptions",
+	Example: `chia-tools data bulk-subscribe -f subscriptions.json
+
+# Show what changes would be made without actually subscribing
+chia-tools data bulk-subscribe -f subscriptions.json --dry-run`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := rpc.NewClient(rpc.ConnectionModeHTTP, rpc.WithAutoConfig())
 		if err != nil {
@@ -40,7 +42,17 @@ var bulkSubCmd = &cobra.Command{
 			slogs.Logr.Fatal("Could not parse the subscriptions json file", "error", err)
 		}
 
+		dryRun := viper.GetBool("dry-run")
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: Would subscribe to the following stores")
+		}
+
 		for _, id := range subs.StoreIDs {
+			if dryRun {
+				slogs.Logr.Info("DRY RUN: Would subscribe to store", "id", id)
+				continue
+			}
+
 			slogs.Logr.Info("Subscription to store", "id", id)
 			_, _, err = client.DataLayerService.Subscribe(&rpc.DatalayerSubscribeOptions{
 				ID: id,
@@ -49,11 +61,16 @@ var bulkSubCmd = &cobra.Command{
 				slogs.Logr.Error("Error subscribing to datastore", "id", id, "error", err)
 			}
 		}
+
+		if dryRun {
+			slogs.Logr.Info("DRY RUN: No changes were made to subscriptions")
+		}
 	},
 }
 
 func init() {
 	bulkSubCmd.PersistentFlags().StringP("file", "f", "", "The file containing the json of subscriptions to add")
+
 	cobra.CheckErr(viper.BindPFlag("bulksub-file", bulkSubCmd.PersistentFlags().Lookup("file")))
 
 	datalayerCmd.AddCommand(bulkSubCmd)
