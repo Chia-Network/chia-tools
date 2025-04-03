@@ -1,14 +1,12 @@
 package config
 
 import (
-	"os"
 	"path"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-modules/pkg/slogs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 // editCmd generates a new chia config
@@ -38,19 +36,6 @@ chia-tools config edit --set full_node.port=58444 --dry-run`,
 			cfgPath = path.Join(chiaRoot, "config", "config.yaml")
 		}
 
-		// Read the current config file to get existing values
-		currentConfig := make(map[string]interface{})
-		if _, err := os.Stat(cfgPath); err == nil {
-			content, err := os.ReadFile(cfgPath)
-			if err != nil {
-				slogs.Logr.Fatal("error reading config file", "error", err)
-			}
-			err = yaml.Unmarshal(content, currentConfig)
-			if err != nil {
-				slogs.Logr.Fatal("error parsing config file", "error", err)
-			}
-		}
-
 		cfg, err := config.LoadConfigAtRoot(cfgPath, chiaRoot)
 		if err != nil {
 			slogs.Logr.Fatal("error loading chia config", "error", err)
@@ -75,9 +60,9 @@ chia-tools config edit --set full_node.port=58444 --dry-run`,
 				break
 			}
 
-			// Get the current value from the config file
-			currentValue := getValueFromMap(currentConfig, pathSlice)
-			if currentValue == nil {
+			// Get the current value using GetFieldByPath
+			currentValue, err := cfg.GetFieldByPath(pathSlice)
+			if err != nil {
 				slogs.Logr.Info("Config value not found", "path", path)
 			}
 
@@ -105,22 +90,6 @@ chia-tools config edit --set full_node.port=58444 --dry-run`,
 			slogs.Logr.Fatal("error saving config", "error", err)
 		}
 	},
-}
-
-// getValueFromMap traverses a map using a path slice to get a value
-func getValueFromMap(m map[string]interface{}, path []string) interface{} {
-	current := m
-	for _, key := range path {
-		if current == nil {
-			return nil
-		}
-		if value, ok := current[key]; ok {
-			current = value.(map[string]interface{})
-		} else {
-			return nil
-		}
-	}
-	return current
 }
 
 func init() {
