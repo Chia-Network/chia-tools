@@ -33,7 +33,50 @@ chia-tools data show-my-mirrors --id abcd1234`,
 		subID := viper.GetString("show-mirrors-id")
 		if subID != "" {
 			// Show mirrors for specific store
-			ShowMirrorsForStore(client, subID)
+			mirrors, _, err := client.DataLayerService.GetMirrors(&rpc.DatalayerGetMirrorsOptions{
+				ID: subID,
+			})
+			if err != nil {
+				slogs.Logr.Fatal("error fetching mirrors for subscription", "store", subID, "error", err)
+			}
+
+			var ownedMirrors []types.DatalayerMirror
+			for _, mirror := range mirrors.Mirrors {
+				if mirror.Ours {
+					ownedMirrors = append(ownedMirrors, mirror)
+				}
+			}
+
+			if len(ownedMirrors) == 0 {
+				fmt.Println("No owned mirrors found for store")
+				return
+			}
+
+			// Create output structure
+			output := struct {
+				Subscriptions []struct {
+					StoreID string                  `json:"store_id"`
+					Mirrors []types.DatalayerMirror `json:"mirrors"`
+				} `json:"subscriptions"`
+			}{
+				Subscriptions: []struct {
+					StoreID string                  `json:"store_id"`
+					Mirrors []types.DatalayerMirror `json:"mirrors"`
+				}{
+					{
+						StoreID: subID,
+						Mirrors: ownedMirrors,
+					},
+				},
+			}
+
+			// Convert to JSON with nice formatting
+			jsonOutput, err := json.MarshalIndent(output, "", "  ")
+			if err != nil {
+				slogs.Logr.Fatal("error marshaling mirrors to JSON", "error", err)
+			}
+
+			fmt.Println(string(jsonOutput))
 			return
 		}
 
@@ -43,14 +86,60 @@ chia-tools data show-my-mirrors --id abcd1234`,
 			slogs.Logr.Fatal("error getting list of datalayer subscriptions", "error", err)
 		}
 
+		// Create output structure
+		output := struct {
+			Subscriptions []struct {
+				StoreID string                  `json:"store_id"`
+				Mirrors []types.DatalayerMirror `json:"mirrors"`
+			} `json:"subscriptions"`
+		}{}
+
+		foundAnyMirrors := false
 		for _, subscription := range subscriptions.StoreIDs {
-			ShowMirrorsForStore(client, subscription)
+			mirrors, _, err := client.DataLayerService.GetMirrors(&rpc.DatalayerGetMirrorsOptions{
+				ID: subscription,
+			})
+			if err != nil {
+				slogs.Logr.Fatal("error fetching mirrors for subscription", "store", subscription, "error", err)
+			}
+
+			var ownedMirrors []types.DatalayerMirror
+			for _, mirror := range mirrors.Mirrors {
+				if mirror.Ours {
+					ownedMirrors = append(ownedMirrors, mirror)
+				}
+			}
+
+			if len(ownedMirrors) > 0 {
+				foundAnyMirrors = true
+				output.Subscriptions = append(output.Subscriptions, struct {
+					StoreID string                  `json:"store_id"`
+					Mirrors []types.DatalayerMirror `json:"mirrors"`
+				}{
+					StoreID: subscription,
+					Mirrors: ownedMirrors,
+				})
+			}
 		}
+
+		if !foundAnyMirrors {
+			fmt.Println("No owned mirrors found for any store")
+			return
+		}
+
+		// Convert to JSON with nice formatting
+		jsonOutput, err := json.MarshalIndent(output, "", "  ")
+		if err != nil {
+			slogs.Logr.Fatal("error marshaling mirrors to JSON", "error", err)
+		}
+
+		fmt.Println(string(jsonOutput))
 	},
 }
 
 // ShowMirrorsForStore displays all owned mirrors for a given store
-func ShowMirrorsForStore(client *rpc.Client, subscription string) {
+// Returns true if any mirrors were found, false otherwise
+func ShowMirrorsForStore(client *rpc.Client, subscription string) bool {
 	mirrors, _, err := client.DataLayerService.GetMirrors(&rpc.DatalayerGetMirrorsOptions{
 		ID: subscription,
 	})
@@ -58,34 +147,13 @@ func ShowMirrorsForStore(client *rpc.Client, subscription string) {
 		slogs.Logr.Fatal("error fetching mirrors for subscription", "store", subscription, "error", err)
 	}
 
-	var ownedMirrors []types.DatalayerMirror
 	for _, mirror := range mirrors.Mirrors {
 		if mirror.Ours {
-			ownedMirrors = append(ownedMirrors, mirror)
+			return true
 		}
 	}
 
-	if len(ownedMirrors) == 0 {
-		slogs.Logr.Info("no owned mirrors for this datastore", "store", subscription)
-		return
-	}
-
-	// Create a struct to hold both store ID and mirrors for JSON output
-	output := struct {
-		StoreID string                  `json:"store_id"`
-		Mirrors []types.DatalayerMirror `json:"mirrors"`
-	}{
-		StoreID: subscription,
-		Mirrors: ownedMirrors,
-	}
-
-	// Convert to JSON with nice formatting
-	jsonOutput, err := json.MarshalIndent(output, "", "  ")
-	if err != nil {
-		slogs.Logr.Fatal("error marshaling mirrors to JSON", "error", err)
-	}
-
-	fmt.Println(string(jsonOutput))
+	return false
 }
 
 func init() {
