@@ -17,13 +17,6 @@ var showMyMirrorsCmd = &cobra.Command{
 	Short: "Shows all mirrors owned by the user across all or specific stores",
 	Example: `chia-tools data show-my-mirrors
 chia-tools data show-my-mirrors --id abcd1234`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		subID := viper.GetString("show-mirrors-id")
-		if subID != "" {
-			return nil
-		}
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := rpc.NewClient(rpc.ConnectionModeHTTP, rpc.WithAutoConfig())
 		if err != nil {
@@ -135,25 +128,6 @@ chia-tools data show-my-mirrors --id abcd1234`,
 
 		fmt.Println(string(jsonOutput))
 	},
-}
-
-// ShowMirrorsForStore displays all owned mirrors for a given store
-// Returns true if any mirrors were found, false otherwise
-func ShowMirrorsForStore(client *rpc.Client, subscription string) bool {
-	mirrors, _, err := client.DataLayerService.GetMirrors(&rpc.DatalayerGetMirrorsOptions{
-		ID: subscription,
-	})
-	if err != nil {
-		slogs.Logr.Fatal("error fetching mirrors for subscription", "store", subscription, "error", err)
-	}
-
-	for _, mirror := range mirrors.Mirrors {
-		if mirror.Ours {
-			return true
-		}
-	}
-
-	return false
 }
 
 func init() {
