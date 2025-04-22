@@ -149,5 +149,6 @@ func removeAllTrustedPeers(cfg *config.ChiaConfig) {
 func init() {
 	removeTrustedPeerCmd.Flags().BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation")
 	removeTrustedPeerCmd.Flags().BoolVarP(&removeAll, "all", "a", false, "Remove all trusted peers from the config file")
+	removeTrustedPeerCmd.Flags().UintVarP(&retries, "retries", "r", 3, "Number of times to retry connecting to the peer")
 	configCmd.AddCommand(removeTrustedPeerCmd)
 }

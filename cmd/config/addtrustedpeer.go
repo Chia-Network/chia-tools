@@ -5,6 +5,7 @@ import (
 	"net"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/peerprotocol"
@@ -128,25 +129,43 @@ func getPeerID(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) 
 	}
 
 	slogs.Logr.Debug("Attempting connection to peer")
-	conn, err := peerprotocol.NewConnection(
-		&ip,
-		peerprotocol.WithPeerPort(port),
-		peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
-		peerprotocol.WithPeerKeyPair(*keypair),
-	)
-	if err != nil {
-		slogs.Logr.Fatal("Error creating connection", "error", err)
+	for i := uint(0); i <= retries; i++ {
+		if i > 0 {
+			slogs.Logr.Debug("Retrying connection attempt", "attempt", i+1, "max_attempts", retries+1, "sleep_seconds", i)
+			time.Sleep(time.Duration(i) * time.Second)
+		}
+
+		conn, err := peerprotocol.NewConnection(
+			&ip,
+			peerprotocol.WithPeerPort(port),
+			peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
+			peerprotocol.WithPeerKeyPair(*keypair),
+		)
+		if err != nil {
+			if i == retries {
+				slogs.Logr.Fatal("Error creating connection after all retry attempts", "error", err)
+			}
+			continue
+		}
+
+		peerID, err := conn.PeerID()
+		if err != nil {
+			if i == retries {
+				slogs.Logr.Fatal("Error getting peer id after all retry attempts", "error", err)
+			}
+			continue
+		}
+
+		slogs.Logr.Debug("Connection successful")
+		return hex.EncodeToString(peerID[:])
 	}
 
-	peerID, err := conn.PeerID()
-	if err != nil {
-		slogs.Logr.Fatal("Error getting peer id", "error", err)
-	}
-	slogs.Logr.Debug("Connection successful")
-	return hex.EncodeToString(peerID[:])
+	// This should never be reached due to the fatal errors above
+	return ""
 }
 
 func init() {
 	addTrustedPeerCmd.Flags().BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation")
+	addTrustedPeerCmd.Flags().UintVarP(&retries, "retries", "r", 3, "Number of times to retry connecting to the peer")
 	configCmd.AddCommand(addTrustedPeerCmd)
 }

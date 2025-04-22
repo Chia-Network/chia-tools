@@ -9,6 +9,7 @@ import (
 
 var (
 	skipConfirm bool
+	retries     uint
 )
 
 // configCmd represents the config command
