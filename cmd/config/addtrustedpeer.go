@@ -15,10 +15,6 @@ import (
 	"github.com/chia-network/chia-tools/internal/utils"
 )
 
-var (
-	skipConfirm bool
-)
-
 // addTrustedPeerCmd Adds a trusted peer to the config
 var addTrustedPeerCmd = &cobra.Command{
 	Use:   "add-trusted-peer",
@@ -83,36 +79,13 @@ chia-tools config add-trusted-peer node.chia.net 8444`,
 		for _, ip := range ips {
 			addTrustedPeer(cfg, chiaRoot, ip, port)
 		}
-
-		slogs.Logr.Info("Added trusted peer. Restart your chia services for the configuration to take effect")
 	},
 }
 
 func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) {
-	slogs.Logr.Info("Attempting to get peer id", "peer", ip.String(), "port", port)
-
-	keypair, err := cfg.FullNode.SSL.LoadPublicKeyPair(chiaRoot)
-	if err != nil {
-		slogs.Logr.Fatal("Error loading certs from CHIA_ROOT", "CHIA_ROOT", chiaRoot, "error", err)
-	}
-	if keypair == nil {
-		slogs.Logr.Fatal("Error loading certs from CHIA_ROOT", "CHIA_ROOT", chiaRoot, "error", "keypair was nil")
-	}
-	conn, err := peerprotocol.NewConnection(
-		&ip,
-		peerprotocol.WithPeerPort(port),
-		peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
-		peerprotocol.WithPeerKeyPair(*keypair),
-	)
-	if err != nil {
-		slogs.Logr.Fatal("Error creating connection", "error", err)
-	}
-	peerID, err := conn.PeerID()
-	if err != nil {
-		slogs.Logr.Fatal("Error getting peer id", "error", err)
-	}
-	peerIDStr := hex.EncodeToString(peerID[:])
+	peerIDStr := getPeerID(cfg, chiaRoot, ip, port)
 	slogs.Logr.Info("peer id received", "peer", peerIDStr)
+
 	if !utils.ConfirmAction("Would you like trust this peer? (y/N)", skipConfirm) {
 		slogs.Logr.Error("Cancelled")
 		return
@@ -135,10 +108,42 @@ func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uin
 		cfg.Wallet.FullNodePeers = append(cfg.Wallet.FullNodePeers, peerToAdd)
 	}
 
-	err = cfg.Save()
+	err := cfg.Save()
 	if err != nil {
 		slogs.Logr.Fatal("error saving config", "error", err)
 	}
+
+	slogs.Logr.Info("Added trusted peer. Restart your chia services for the configuration to take effect")
+}
+
+func getPeerID(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) string {
+	slogs.Logr.Info("Attempting to get peer id", "peer", ip.String(), "port", port)
+
+	keypair, err := cfg.FullNode.SSL.LoadPublicKeyPair(chiaRoot)
+	if err != nil {
+		slogs.Logr.Fatal("Error loading certs from CHIA_ROOT", "CHIA_ROOT", chiaRoot, "error", err)
+	}
+	if keypair == nil {
+		slogs.Logr.Fatal("Error loading certs from CHIA_ROOT", "CHIA_ROOT", chiaRoot, "error", "keypair was nil")
+	}
+
+	slogs.Logr.Debug("Attempting connection to peer")
+	conn, err := peerprotocol.NewConnection(
+		&ip,
+		peerprotocol.WithPeerPort(port),
+		peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
+		peerprotocol.WithPeerKeyPair(*keypair),
+	)
+	if err != nil {
+		slogs.Logr.Fatal("Error creating connection", "error", err)
+	}
+
+	peerID, err := conn.PeerID()
+	if err != nil {
+		slogs.Logr.Fatal("Error getting peer id", "error", err)
+	}
+	slogs.Logr.Debug("Connection successful")
+	return hex.EncodeToString(peerID[:])
 }
 
 func init() {
