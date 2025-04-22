@@ -50,7 +50,7 @@ chia-tools config remove-trusted-peer --all`,
 		}
 
 		if removeAll {
-			removeAllTrustedPeers(cfg, chiaRoot)
+			removeAllTrustedPeers(cfg)
 			return
 		}
 
@@ -121,14 +121,22 @@ func removeTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port 
 	slogs.Logr.Info("Removed trusted peer. Restart your chia services for the configuration to take effect")
 }
 
-func removeAllTrustedPeers(cfg *config.ChiaConfig, chiaRoot string) {
+func removeAllTrustedPeers(cfg *config.ChiaConfig) {
 	if !utils.ConfirmAction("Are you sure you would like to remove all trusted peers? (y/N)", skipConfirm) {
 		slogs.Logr.Error("Cancelled")
 		return
 	}
 
+	// Reset trusted peers map to the default
 	cfg.Wallet.TrustedPeers = make(map[string]string)
+	cfg.Wallet.TrustedPeers["0ThisisanexampleNodeID7ff9d60f1c3fa270c213c0ad0cb89c01274634a7c3cb9"] = "Does_not_matter"
+
+	// Reset full_node peers list to just localhost
 	cfg.Wallet.FullNodePeers = make([]config.Peer, 0)
+	cfg.Wallet.FullNodePeers = append(cfg.Wallet.FullNodePeers, config.Peer{
+		Host: "localhost",
+		Port: cfg.FullNode.Port,
+	})
 
 	err := cfg.Save()
 	if err != nil {
