@@ -83,6 +83,8 @@ chia-tools config add-trusted-peer node.chia.net 8444`,
 		for _, ip := range ips {
 			addTrustedPeer(cfg, chiaRoot, ip, port)
 		}
+
+		slogs.Logr.Info("Added trusted peer. Restart your chia services for the configuration to take effect")
 	},
 }
 
@@ -113,6 +115,7 @@ func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uin
 	slogs.Logr.Info("peer id received", "peer", peerIDStr)
 	if !utils.ConfirmAction("Would you like trust this peer? (y/N)", skipConfirm) {
 		slogs.Logr.Error("Cancelled")
+		return
 	}
 	cfg.Wallet.TrustedPeers[peerIDStr] = "Does_not_matter"
 
@@ -136,8 +139,6 @@ func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uin
 	if err != nil {
 		slogs.Logr.Fatal("error saving config", "error", err)
 	}
-
-	slogs.Logr.Info("Added trusted peer. Restart your chia services for the configuration to take effect")
 }
 
 func init() {
