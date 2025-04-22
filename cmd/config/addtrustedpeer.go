@@ -157,6 +157,7 @@ func getPeerID(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) 
 			peerprotocol.WithPeerPort(port),
 			peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
 			peerprotocol.WithPeerKeyPair(*keypair),
+			peerprotocol.WithHandshakeTimeout(time.Second*3),
 		)
 		if err != nil {
 			if i == retries {
