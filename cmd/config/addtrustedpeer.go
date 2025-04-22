@@ -2,9 +2,13 @@ package config
 
 import (
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"net"
+	"os"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/peerprotocol"
@@ -76,19 +80,32 @@ chia-tools config add-trusted-peer node.chia.net 8444`,
 			ips = append(ips, ip)
 		}
 
+		var errs []error
 		for _, ip := range ips {
-			addTrustedPeer(cfg, chiaRoot, ip, port)
+			err = addTrustedPeer(cfg, chiaRoot, ip, port)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+		if len(errs) > 0 {
+			for _, err := range errs {
+				slogs.Logr.Error("error adding trusted peer", "error", err)
+			}
+			os.Exit(1)
 		}
 	},
 }
 
-func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) {
-	peerIDStr := getPeerID(cfg, chiaRoot, ip, port)
+func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) error {
+	peerIDStr, err := getPeerID(cfg, chiaRoot, ip, port)
+	if err != nil {
+		return err
+	}
 	slogs.Logr.Info("peer id received", "peer", peerIDStr)
 
 	if !utils.ConfirmAction("Would you like trust this peer? (y/N)", skipConfirm) {
 		slogs.Logr.Error("Cancelled")
-		return
+		return nil
 	}
 	cfg.Wallet.TrustedPeers[peerIDStr] = "Does_not_matter"
 
@@ -108,45 +125,70 @@ func addTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uin
 		cfg.Wallet.FullNodePeers = append(cfg.Wallet.FullNodePeers, peerToAdd)
 	}
 
-	err := cfg.Save()
+	err = cfg.Save()
 	if err != nil {
-		slogs.Logr.Fatal("error saving config", "error", err)
+		return fmt.Errorf("error saving config: %w", err)
 	}
 
 	slogs.Logr.Info("Added trusted peer. Restart your chia services for the configuration to take effect")
+	return nil
 }
 
-func getPeerID(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) string {
+func getPeerID(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) (string, error) {
 	slogs.Logr.Info("Attempting to get peer id", "peer", ip.String(), "port", port)
 
 	keypair, err := cfg.FullNode.SSL.LoadPublicKeyPair(chiaRoot)
 	if err != nil {
-		slogs.Logr.Fatal("Error loading certs from CHIA_ROOT", "CHIA_ROOT", chiaRoot, "error", err)
+		return "", fmt.Errorf("error loading certs from CHIA_ROOT: %w", err)
 	}
 	if keypair == nil {
-		slogs.Logr.Fatal("Error loading certs from CHIA_ROOT", "CHIA_ROOT", chiaRoot, "error", "keypair was nil")
+		return "", errors.New("error loading certs from CHIA_ROOT, keypair was nil")
 	}
 
 	slogs.Logr.Debug("Attempting connection to peer")
-	conn, err := peerprotocol.NewConnection(
-		&ip,
-		peerprotocol.WithPeerPort(port),
-		peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
-		peerprotocol.WithPeerKeyPair(*keypair),
-	)
-	if err != nil {
-		slogs.Logr.Fatal("Error creating connection", "error", err)
+	for i := uint(0); i <= retries; i++ {
+		if i > 0 {
+			slogs.Logr.Debug("Retrying connection attempt", "attempt", i+1, "max_attempts", retries+1, "sleep_seconds", i)
+			time.Sleep(time.Duration(i) * time.Second)
+		}
+
+		conn, err := peerprotocol.NewConnection(
+			&ip,
+			peerprotocol.WithPeerPort(port),
+			peerprotocol.WithNetworkID(*cfg.SelectedNetwork),
+			peerprotocol.WithPeerKeyPair(*keypair),
+			peerprotocol.WithHandshakeTimeout(time.Second*3),
+		)
+		if err != nil {
+			if i == retries {
+				return "", fmt.Errorf("error creating connection to %s:%d after all retry attempts: %w", ip.String(), port, err)
+			}
+			continue
+		}
+
+		peerID, err := conn.PeerID()
+		if err != nil {
+			if i == retries {
+				return "", fmt.Errorf("error getting peer id for %s:%d after all retry attempts: %w", ip.String(), port, err)
+			}
+			continue
+		}
+
+		slogs.Logr.Debug("Connection successful")
+		peerIDStr := hex.EncodeToString(peerID[:])
+		if peerIDStr == "" {
+			return "", fmt.Errorf("peer id for %s:%d was empty after all retry attempts", ip.String(), port)
+		}
+
+		return peerIDStr, nil
 	}
 
-	peerID, err := conn.PeerID()
-	if err != nil {
-		slogs.Logr.Fatal("Error getting peer id", "error", err)
-	}
-	slogs.Logr.Debug("Connection successful")
-	return hex.EncodeToString(peerID[:])
+	// This should never be reached due to the fatal errors above
+	return "", fmt.Errorf("error connecting to peer after all retry attempts")
 }
 
 func init() {
 	addTrustedPeerCmd.Flags().BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation")
+	addTrustedPeerCmd.Flags().UintVarP(&retries, "retries", "r", 3, "Number of times to retry connecting to the peer")
 	configCmd.AddCommand(addTrustedPeerCmd)
 }
