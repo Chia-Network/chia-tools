@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"net"
+	"os"
 	"path"
 	"strconv"
 
@@ -86,19 +88,32 @@ chia-tools config remove-trusted-peer --all`,
 			ips = append(ips, ip)
 		}
 
+		var errs []error
 		for _, ip := range ips {
-			removeTrustedPeer(cfg, chiaRoot, ip, port)
+			err = removeTrustedPeer(cfg, chiaRoot, ip, port)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
+		if len(errs) > 0 {
+			for _, err := range errs {
+				slogs.Logr.Error("error adding trusted peer", "error", err)
+			}
+			os.Exit(1)
 		}
 	},
 }
 
-func removeTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) {
-	peerIDStr := getPeerID(cfg, chiaRoot, ip, port)
+func removeTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port uint16) error {
+	peerIDStr, err := getPeerID(cfg, chiaRoot, ip, port)
+	if err != nil {
+		return err
+	}
 	slogs.Logr.Info("peer id received", "peer", peerIDStr)
 
 	if !utils.ConfirmAction("Would you like stop trusting this peer? (y/N)", skipConfirm) {
 		slogs.Logr.Error("Cancelled")
-		return
+		return nil
 	}
 
 	// Remove trusted peer
@@ -113,12 +128,13 @@ func removeTrustedPeer(cfg *config.ChiaConfig, chiaRoot string, ip net.IP, port 
 	}
 	cfg.Wallet.FullNodePeers = fullNodePeers
 
-	err := cfg.Save()
+	err = cfg.Save()
 	if err != nil {
-		slogs.Logr.Fatal("error saving config", "error", err)
+		return fmt.Errorf("error saving config: %w", err)
 	}
 
 	slogs.Logr.Info("Removed trusted peer. Restart your chia services for the configuration to take effect")
+	return nil
 }
 
 func removeAllTrustedPeers(cfg *config.ChiaConfig) {
