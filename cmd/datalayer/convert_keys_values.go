@@ -132,11 +132,6 @@ chia-tools data convert-keys-values --id abc123 --input-format utf8 --output-for
 
 // convertFormat converts a string from one format to another
 func convertFormat(input types.Bytes, fromFormat, toFormat string) (string, error) {
-	// If formats are the same, return the input as is
-	if fromFormat == toFormat {
-		return string(input), nil
-	}
-
 	// DEBUG: Log the input string and formats
 	slogs.Logr.Debug("Converting format",
 		"from", fromFormat,
@@ -145,6 +140,9 @@ func convertFormat(input types.Bytes, fromFormat, toFormat string) (string, erro
 		"input_hex", fmt.Sprintf("%x", input))
 
 	switch {
+	case fromFormat == toFormat:
+		return string(input), nil
+
 	case fromFormat == "hex" && toFormat == "utf8":
 		// Convert bytes directly to string
 		result := string(input)
