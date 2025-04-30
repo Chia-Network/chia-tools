@@ -4,12 +4,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"github.com/chia-network/go-chia-libs/pkg/rpc"
+	"github.com/chia-network/go-chia-libs/pkg/types"
 	"github.com/chia-network/go-modules/pkg/slogs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strings"
 )
 
 // convertKeysValuesCmd converts keys and values between different encoding formats
@@ -42,22 +42,9 @@ chia-tools data convert-keys-values --id abc123 --input utf8 --output hex`,
 		outputFormat := viper.GetString("output-format")
 
 		// Create output structure
-		output := struct {
-			KeysValues []struct {
-				Atom  interface{} `json:"atom"`
-				Hash  string      `json:"hash"`
-				Key   string      `json:"key"`
-				Value string      `json:"value"`
-			} `json:"keys_values"`
-			Success bool `json:"success"`
-		}{
-			KeysValues: make([]struct {
-				Atom  interface{} `json:"atom"`
-				Hash  string      `json:"hash"`
-				Key   string      `json:"key"`
-				Value string      `json:"value"`
-			}, 0),
-			Success: true,
+		output := rpc.DatalayerGetKeysValuesResponse{
+			KeysValues: make([]types.DatalayerKeyValue, 0),
+			Response:   keysValues.Response,
 		}
 
 		// Convert each key-value pair
@@ -74,16 +61,11 @@ chia-tools data convert-keys-values --id abc123 --input utf8 --output hex`,
 				slogs.Logr.Fatal("error converting value", "error", err)
 			}
 
-			output.KeysValues = append(output.KeysValues, struct {
-				Atom  interface{} `json:"atom"`
-				Hash  string      `json:"hash"`
-				Key   string      `json:"key"`
-				Value string      `json:"value"`
-			}{
+			output.KeysValues = append(output.KeysValues, types.DatalayerKeyValue{
 				Atom:  kv.Atom,
 				Hash:  kv.Hash,
-				Key:   convertedKey,
-				Value: convertedValue,
+				Key:   []byte(convertedKey),
+				Value: []byte(convertedValue),
 			})
 		}
 
@@ -98,20 +80,20 @@ chia-tools data convert-keys-values --id abc123 --input utf8 --output hex`,
 }
 
 // convertFormat converts a string from one format to another
-func convertFormat(input, fromFormat, toFormat string) (string, error) {
+func convertFormat(input types.Bytes, fromFormat, toFormat string) (string, error) {
 	// Remove 0x prefix if present
-	input = strings.TrimPrefix(input, "0x")
+	inputStr := strings.TrimPrefix(string(input), "0x")
 
 	switch {
 	case fromFormat == "hex" && toFormat == "utf8":
-		bytes, err := hex.DecodeString(input)
+		bytes, err := hex.DecodeString(inputStr)
 		if err != nil {
 			return "", err
 		}
 		return string(bytes), nil
 
 	case fromFormat == "utf8" && toFormat == "hex":
-		return "0x" + hex.EncodeToString([]byte(input)), nil
+		return "0x" + hex.EncodeToString([]byte(inputStr)), nil
 
 	default:
 		return "", fmt.Errorf("unsupported conversion from %s to %s", fromFormat, toFormat)
