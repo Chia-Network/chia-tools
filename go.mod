@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	github.com/chia-network/go-chia-libs v0.21.5
+	github.com/chia-network/go-chia-libs v0.21.7
 	github.com/chia-network/go-modules v0.0.9
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.9.1
