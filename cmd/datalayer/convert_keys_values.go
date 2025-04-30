@@ -15,9 +15,9 @@ import (
 // convertKeysValuesCmd converts keys and values between different encoding formats
 var convertKeysValuesCmd = &cobra.Command{
 	Use:   "convert-keys-values",
-	Short: "Converts keys and values between different encoding formats",
-	Example: `chia-tools data convert-keys-values --id abc123 --input=hex --output=utf8
-chia-tools data convert-keys-values --id abc123 --input=utf8 --output=hex`,
+	Short: "Converts keys and values from the Chia DataLayer get_keys_values endpointbetween different encoding formats",
+	Example: `chia-tools data convert-keys-values --id abc123 --input hex --output utf8
+chia-tools data convert-keys-values --id abc123 --input utf8 --output hex`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := rpc.NewClient(rpc.ConnectionModeHTTP, rpc.WithAutoConfig())
 		if err != nil {
