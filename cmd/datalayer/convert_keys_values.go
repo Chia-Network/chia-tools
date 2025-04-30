@@ -162,16 +162,6 @@ func convertFormat(input types.Bytes, fromFormat, toFormat string) (string, erro
 	}
 }
 
-// isHexString checks if a string is a valid hex string
-func isHexString(s string) bool {
-	for _, c := range s {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-			return false
-		}
-	}
-	return true
-}
-
 func init() {
 	convertKeysValuesCmd.PersistentFlags().String("id", "", "The store ID to convert keys and values for")
 	convertKeysValuesCmd.PersistentFlags().String("input-format", "hex", "Input format (hex, utf8)")
