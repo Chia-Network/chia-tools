@@ -94,12 +94,6 @@ func SplitLargestCoin() {
 	walletID := viper.GetUint32("coins-wallet-id")
 	fingerprint := viper.GetInt("coins-fingerprint")
 
-	// If fingerprint is provided, we need to get the wallet ID
-	if fingerprint > 0 {
-		slogs.Logr.Debug("Getting wallet ID from fingerprint", "fingerprint", fingerprint)
-		// For now, we'll use the provided wallet ID directly
-		// In a full implementation, you might want to query available wallets
-	}
 
 	slogs.Logr.Debug("Getting spendable coins", "wallet_id", walletID)
 
