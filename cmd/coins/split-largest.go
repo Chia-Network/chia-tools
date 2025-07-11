@@ -16,7 +16,7 @@ import (
 var splitLargestCmd = &cobra.Command{
 	Use:   "split-largest",
 	Short: "Find the largest coin in the wallet and split it into smaller coins",
-	Example: `chia-tools coins split-largest --fingerprint 123456789 --amount-per-coin 0.001 --number-of-coins 10
+	Example: `chia-tools coins split-largest --amount-per-coin 0.001 --number-of-coins 10
 chia-tools coins split-largest --id 1 --amount-per-coin 0.001 --number-of-coins 10 --fee 0.0001`,
 	Run: func(cmd *cobra.Command, args []string) {
 		amountPerCoinStr := viper.GetString("coins-amount-per-coin")
@@ -92,14 +92,6 @@ func SplitLargestCoin() {
 	}
 
 	walletID := viper.GetUint32("coins-wallet-id")
-	fingerprint := viper.GetInt("coins-fingerprint")
-
-	// If fingerprint is provided, we need to get the wallet ID
-	if fingerprint > 0 {
-		slogs.Logr.Debug("Getting wallet ID from fingerprint", "fingerprint", fingerprint)
-		// For now, we'll use the provided wallet ID directly
-		// In a full implementation, you might want to query available wallets
-	}
 
 	slogs.Logr.Debug("Getting spendable coins", "wallet_id", walletID)
 
@@ -200,7 +192,6 @@ func SplitLargestCoin() {
 }
 
 func init() {
-	splitLargestCmd.PersistentFlags().IntP("fingerprint", "f", 0, "Fingerprint of the wallet to use")
 	splitLargestCmd.PersistentFlags().StringP("amount-per-coin", "a", "", "The amount of each newly created coin, in XCH or CAT units")
 	splitLargestCmd.PersistentFlags().Uint32P("number-of-coins", "n", 0, "The number of coins we are creating")
 	splitLargestCmd.PersistentFlags().Uint32P("id", "i", 1, "Id of the wallet to use")
@@ -211,7 +202,6 @@ func init() {
 	cobra.CheckErr(splitLargestCmd.MarkPersistentFlagRequired("number-of-coins"))
 
 	// Bind flags to viper
-	cobra.CheckErr(viper.BindPFlag("coins-fingerprint", splitLargestCmd.PersistentFlags().Lookup("fingerprint")))
 	cobra.CheckErr(viper.BindPFlag("coins-amount-per-coin", splitLargestCmd.PersistentFlags().Lookup("amount-per-coin")))
 	cobra.CheckErr(viper.BindPFlag("coins-number-of-coins", splitLargestCmd.PersistentFlags().Lookup("number-of-coins")))
 	cobra.CheckErr(viper.BindPFlag("coins-wallet-id", splitLargestCmd.PersistentFlags().Lookup("id")))
