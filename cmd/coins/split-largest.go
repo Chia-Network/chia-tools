@@ -184,10 +184,26 @@ func SplitLargestCoin() {
 		slogs.Logr.Fatal("no response from split_coins")
 	}
 
-	if splitResponse.TransactionID.IsPresent() {
-		fmt.Printf("Successfully split coin. Transaction ID: %s\n", splitResponse.TransactionID.MustGet())
-	} else {
-		fmt.Println("Coin split initiated successfully")
+	// Extract transaction ID from response
+	var transactionID string
+	if splitResponse.Transactions.IsPresent() {
+		transactions := splitResponse.Transactions.MustGet()
+		if len(transactions) > 0 {
+			transactionID = transactions[0].Name.String()
+		}
+	}
+
+	if transactionID != "" {
+		// Strip 0x prefix if present
+		transactionID = strings.TrimPrefix(transactionID, "0x")
+		// Output transaction ID in machine-readable format for scripts
+		fmt.Printf("TRANSACTION_ID=%s\n", transactionID)
+	}
+
+	fmt.Println("Coin split initiated successfully")
+
+	if transactionID != "" {
+		fmt.Printf("\nTo monitor the transaction, run \"chia wallet get_transaction -tx %s\"\n", transactionID)
 	}
 }
 
