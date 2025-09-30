@@ -81,17 +81,26 @@ chia-tools config add-trusted-peer node.chia.net 8444`,
 		}
 
 		var errs []error
+		var successfulIPs []net.IP
 		for _, ip := range ips {
 			err = addTrustedPeer(cfg, chiaRoot, ip, port)
 			if err != nil {
 				errs = append(errs, err)
+				slogs.Logr.Error("error adding trusted peer", "peer", ip.String(), "error", err)
+			} else {
+				successfulIPs = append(successfulIPs, ip)
 			}
 		}
-		if len(errs) > 0 {
-			for _, err := range errs {
-				slogs.Logr.Error("error adding trusted peer", "error", err)
-			}
+
+		// Only fail if no IP addresses were successfully added
+		if len(successfulIPs) == 0 {
+			slogs.Logr.Error("Failed to add trusted peer - no IP addresses were reachable")
 			os.Exit(1)
+		}
+
+		// Log summary of results
+		if len(successfulIPs) > 0 {
+			slogs.Logr.Info("Successfully added trusted peer", "successful_ips", len(successfulIPs), "failed_ips", len(errs))
 		}
 	},
 }
