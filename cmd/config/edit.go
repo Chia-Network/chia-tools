@@ -41,6 +41,11 @@ chia-tools config edit --set full_node.port=58444 --dry-run`,
 			slogs.Logr.Fatal("error loading chia config", "error", err)
 		}
 
+		if viper.GetBool("independent-logging") {
+			// Split logging so changes don't impact shared instances
+			cfg.SetIndependentLogging()
+		}
+
 		err = cfg.FillValuesFromEnvironment()
 		if err != nil {
 			slogs.Logr.Fatal("error filling values from environment", "error", err)
@@ -94,8 +99,10 @@ chia-tools config edit --set full_node.port=58444 --dry-run`,
 
 func init() {
 	editCmd.PersistentFlags().StringToStringP("set", "s", nil, "Paths and values to set in the config")
+	editCmd.PersistentFlags().Bool("independent-logging", false, "Use independent logging instances instead of shared anchors")
 
 	cobra.CheckErr(viper.BindPFlag("edit-set", editCmd.PersistentFlags().Lookup("set")))
+	cobra.CheckErr(viper.BindPFlag("independent-logging", editCmd.PersistentFlags().Lookup("independent-logging")))
 
 	configCmd.AddCommand(editCmd)
 }
