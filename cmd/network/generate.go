@@ -40,6 +40,26 @@ var generateCmd = &cobra.Command{
 			SubSlotItersStarting:           viper.GetUint64("tn-gen-sub-slot-iters-starting"),
 			HardForkHeight:                 ptr.Uint32Ptr(0),
 		}
+		if viper.IsSet("tn-gen-hard-fork2-height") {
+			constants.Hard2ForkHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-hard-fork2-height"))
+		}
+		if viper.IsSet("tn-gen-number-zero-bits-plot-filter-v2") {
+			value := cast.ToUint8(viper.Get("tn-gen-number-zero-bits-plot-filter-v2"))
+			constants.NumberZeroBitsPlotFilterV2 = &value
+		}
+		if viper.IsSet("tn-gen-plot-v1-phase-out-epoch-bits") {
+			value := cast.ToUint8(viper.Get("tn-gen-plot-v1-phase-out-epoch-bits"))
+			constants.PlotV1PhaseOutEpochBits = &value
+		}
+		if viper.IsSet("tn-gen-plot-filter-v2-first-adjustment-height") {
+			constants.PlotFilterV2FirstAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-first-adjustment-height"))
+		}
+		if viper.IsSet("tn-gen-plot-filter-v2-second-adjustment-height") {
+			constants.PlotFilterV2SecondAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-second-adjustment-height"))
+		}
+		if viper.IsSet("tn-gen-plot-filter-v2-third-adjustment-height") {
+			constants.PlotFilterV2ThirdAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-third-adjustment-height"))
+		}
 		cfg := &config.NetworkConfig{
 			AddressPrefix:       "txch",
 			DefaultFullNodePort: viper.GetUint16("tn-gen-port"),
@@ -87,6 +107,14 @@ func init() {
 	generateCmd.PersistentFlags().Uint64("difficulty-starting", uint64(30), "Specify starting difficulty")
 	generateCmd.PersistentFlags().Uint64("sub-slot-iters-starting", uint64(1<<26), "Specify starting sub slot iters")
 	generateCmd.PersistentFlags().Uint16("port", uint16(58445), "Specify the port the network full nodes should use")
+	// New configuration options to support testing hard fork 2
+	generateCmd.PersistentFlags().Uint32("hard-fork2-height", uint32(0), "Block height when the 3.0 hard fork will activate")
+	generateCmd.PersistentFlags().Uint8("number-zero-bits-plot-filter-v2", uint8(0), "Number of leading zeroes required to pass plot ID filter (post hard fork only)")
+	generateCmd.PersistentFlags().Uint8("plot-v1-phase-out-epoch-bits", uint8(0), "Number of bits in phase out period (eg 8 bits = 256 epochs)")
+	generateCmd.PersistentFlags().Uint32("plot-filter-v2-first-adjustment-height", uint32(0), "Block height of first base filter halving")
+	generateCmd.PersistentFlags().Uint32("plot-filter-v2-second-adjustment-height", uint32(0), "Block height of second base filter halving")
+	generateCmd.PersistentFlags().Uint32("plot-filter-v2-third-adjustment-height", uint32(0), "Block height of third base filter halving")
+	// Output format options
 	generateCmd.PersistentFlags().Bool("as-json", false, "Output as JSON blob instead of yaml")
 	generateCmd.PersistentFlags().Bool("with-constants", false, "Include constants and default ports")
 
@@ -100,6 +128,12 @@ func init() {
 	cobra.CheckErr(viper.BindPFlag("tn-gen-difficulty-starting", generateCmd.PersistentFlags().Lookup("difficulty-starting")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-sub-slot-iters-starting", generateCmd.PersistentFlags().Lookup("sub-slot-iters-starting")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-port", generateCmd.PersistentFlags().Lookup("port")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-hard-fork2-height", generateCmd.PersistentFlags().Lookup("hard-fork2-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-number-zero-bits-plot-filter-v2", generateCmd.PersistentFlags().Lookup("number-zero-bits-plot-filter-v2")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-v1-phase-out-epoch-bits", generateCmd.PersistentFlags().Lookup("plot-v1-phase-out-epoch-bits")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-first-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-first-adjustment-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-second-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-second-adjustment-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-third-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-third-adjustment-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-as-json", generateCmd.PersistentFlags().Lookup("as-json")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-with-constants", generateCmd.PersistentFlags().Lookup("with-constants")))
 
