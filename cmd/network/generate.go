@@ -41,7 +41,7 @@ var generateCmd = &cobra.Command{
 			HardForkHeight:                 ptr.Uint32Ptr(0),
 		}
 		if viper.IsSet("tn-gen-hard-fork2-height") {
-			constants.Hard2ForkHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-hard-fork2-height"))
+			constants.HardFork2Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-hard-fork2-height"))
 		}
 		if viper.IsSet("tn-gen-number-zero-bits-plot-filter-v2") {
 			value := cast.ToUint8(viper.Get("tn-gen-number-zero-bits-plot-filter-v2"))
