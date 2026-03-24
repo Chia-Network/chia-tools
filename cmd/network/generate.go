@@ -108,8 +108,8 @@ func init() {
 	generateCmd.PersistentFlags().Uint8("min-plot-size", uint8(18), "Specify the minimum plot size MIN_PLOT_SIZE")
 	generateCmd.PersistentFlags().Uint8("mempool-block-buffer", uint8(10), "Specify MEMPOOL_BLOCK_BUFFER")
 	generateCmd.PersistentFlags().Uint32("epoch-blocks", uint32(768), "specify EPOCH_BLOCKS")
-	generateCmd.PersistentFlags().Uint64("difficulty-starting", uint64(30), "Specify starting difficulty")
-	generateCmd.PersistentFlags().Uint64("sub-slot-iters-starting", uint64(1<<26), "Specify starting sub slot iters")
+	generateCmd.PersistentFlags().Uint64("difficulty-starting", uint64(250), "Specify starting difficulty")
+	generateCmd.PersistentFlags().Uint64("sub-slot-iters-starting", uint64(1<<25), "Specify starting sub slot iters")
 	generateCmd.PersistentFlags().Uint16("port", uint16(58445), "Specify the port the network full nodes should use")
 	// New configuration options to support testing hard fork 2
 	generateCmd.PersistentFlags().Uint32("hard-fork2-height", uint32(0), "Block height when the 3.0 hard fork will activate")
