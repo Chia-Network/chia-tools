@@ -60,6 +60,10 @@ var generateCmd = &cobra.Command{
 		if viper.IsSet("tn-gen-plot-filter-v2-third-adjustment-height") {
 			constants.PlotFilterV2ThirdAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-third-adjustment-height"))
 		}
+		if viper.IsSet("tn-gen-soft-fork-8-9-height") {
+			constants.SoftFork8Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-soft-fork-8-9-height"))
+			constants.SoftFork9Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-soft-fork-8-9-height"))
+		}
 		cfg := &config.NetworkConfig{
 			AddressPrefix:       "txch",
 			DefaultFullNodePort: viper.GetUint16("tn-gen-port"),
@@ -114,6 +118,8 @@ func init() {
 	generateCmd.PersistentFlags().Uint32("plot-filter-v2-first-adjustment-height", uint32(0), "Block height of first base filter halving")
 	generateCmd.PersistentFlags().Uint32("plot-filter-v2-second-adjustment-height", uint32(0), "Block height of second base filter halving")
 	generateCmd.PersistentFlags().Uint32("plot-filter-v2-third-adjustment-height", uint32(0), "Block height of third base filter halving")
+	// Soft fork 8/9 testing option
+	generateCmd.PersistentFlags().Uint32("soft-fork-8-9-height", uint32(0), "Block height to activate soft fork 8 and 9")
 	// Output format options
 	generateCmd.PersistentFlags().Bool("as-json", false, "Output as JSON blob instead of yaml")
 	generateCmd.PersistentFlags().Bool("with-constants", false, "Include constants and default ports")
@@ -134,6 +140,7 @@ func init() {
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-first-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-first-adjustment-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-second-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-second-adjustment-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-third-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-third-adjustment-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-soft-fork-8-9-height", generateCmd.PersistentFlags().Lookup("soft-fork-8-9-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-as-json", generateCmd.PersistentFlags().Lookup("as-json")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-with-constants", generateCmd.PersistentFlags().Lookup("with-constants")))
 
