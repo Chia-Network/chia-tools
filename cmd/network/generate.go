@@ -60,6 +60,10 @@ var generateCmd = &cobra.Command{
 		if viper.IsSet("tn-gen-plot-filter-v2-third-adjustment-height") {
 			constants.PlotFilterV2ThirdAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-third-adjustment-height"))
 		}
+		if viper.IsSet("tn-gen-soft-fork-8-9-height") {
+			constants.SoftFork8Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-soft-fork-8-9-height"))
+			constants.SoftFork9Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-soft-fork-8-9-height"))
+		}
 		cfg := &config.NetworkConfig{
 			AddressPrefix:       "txch",
 			DefaultFullNodePort: viper.GetUint16("tn-gen-port"),
@@ -104,8 +108,8 @@ func init() {
 	generateCmd.PersistentFlags().Uint8("min-plot-size", uint8(18), "Specify the minimum plot size MIN_PLOT_SIZE")
 	generateCmd.PersistentFlags().Uint8("mempool-block-buffer", uint8(10), "Specify MEMPOOL_BLOCK_BUFFER")
 	generateCmd.PersistentFlags().Uint32("epoch-blocks", uint32(768), "specify EPOCH_BLOCKS")
-	generateCmd.PersistentFlags().Uint64("difficulty-starting", uint64(30), "Specify starting difficulty")
-	generateCmd.PersistentFlags().Uint64("sub-slot-iters-starting", uint64(1<<26), "Specify starting sub slot iters")
+	generateCmd.PersistentFlags().Uint64("difficulty-starting", uint64(250), "Specify starting difficulty")
+	generateCmd.PersistentFlags().Uint64("sub-slot-iters-starting", uint64(1<<25), "Specify starting sub slot iters")
 	generateCmd.PersistentFlags().Uint16("port", uint16(58445), "Specify the port the network full nodes should use")
 	// New configuration options to support testing hard fork 2
 	generateCmd.PersistentFlags().Uint32("hard-fork2-height", uint32(0), "Block height when the 3.0 hard fork will activate")
@@ -114,6 +118,8 @@ func init() {
 	generateCmd.PersistentFlags().Uint32("plot-filter-v2-first-adjustment-height", uint32(0), "Block height of first base filter halving")
 	generateCmd.PersistentFlags().Uint32("plot-filter-v2-second-adjustment-height", uint32(0), "Block height of second base filter halving")
 	generateCmd.PersistentFlags().Uint32("plot-filter-v2-third-adjustment-height", uint32(0), "Block height of third base filter halving")
+	// Soft fork 8/9 testing option
+	generateCmd.PersistentFlags().Uint32("soft-fork-8-9-height", uint32(0), "Block height to activate soft fork 8 and 9")
 	// Output format options
 	generateCmd.PersistentFlags().Bool("as-json", false, "Output as JSON blob instead of yaml")
 	generateCmd.PersistentFlags().Bool("with-constants", false, "Include constants and default ports")
@@ -134,6 +140,7 @@ func init() {
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-first-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-first-adjustment-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-second-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-second-adjustment-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-third-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-third-adjustment-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-soft-fork-8-9-height", generateCmd.PersistentFlags().Lookup("soft-fork-8-9-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-as-json", generateCmd.PersistentFlags().Lookup("as-json")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-with-constants", generateCmd.PersistentFlags().Lookup("with-constants")))
 
