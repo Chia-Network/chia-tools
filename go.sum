@@ -2,6 +2,8 @@ github.com/chia-network/go-chia-libs v1.3.1 h1:pY8i9KJ7e+GMbMlZXCicXuuhpiEkr5EA9
 github.com/chia-network/go-chia-libs v1.3.1/go.mod h1:2Ud+G6/JdMruQol9Jg8dEe9BvEeDXV0lUXJayT1ujHQ=
 github.com/chia-network/go-modules v0.1.1 h1:wQsKDrPAfnO06GkWckJeHpkiBkNAPYsNzjLBWllyjQw=
 github.com/chia-network/go-modules v0.1.1/go.mod h1:qmsTxy9QulYsGL+mF+gi143mLSOQIgdSZfBSQ2YGWfE=
+github.com/chia-network/go-modules v1.0.0 h1:GtEFYa0Xu8TCuCj8MdXRyEiacecAH/Ub9wZB4PzEArA=
+github.com/chia-network/go-modules v1.0.0/go.mod h1:874YChL82KTnkfVJOsEXhOyb43cblp1O4rvWDonVw1U=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
