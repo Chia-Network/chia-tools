@@ -21,9 +21,10 @@ var generateCmd = &cobra.Command{
 			slogs.Logr.Fatal("error loading default config", "error", err)
 		}
 
+		logDetectedChiaEnvVars()
 		err = cfg.FillValuesFromEnvironment()
 		if err != nil {
-			slogs.Logr.Fatal("error filling values from environment", "error", err)
+			slogs.Logr.Fatal("error applying chia environment variables to config. Check the environment variables listed above for incorrect values", "error", err)
 		}
 
 		valuesToSet := viper.GetStringMapString("set")
