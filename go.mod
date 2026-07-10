@@ -3,7 +3,7 @@ module github.com/chia-network/chia-tools
 go 1.25.0
 
 require (
-	github.com/chia-network/go-chia-libs v1.3.2
+	github.com/chia-network/go-chia-libs v1.3.3
 	github.com/chia-network/go-modules v1.0.0
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.2
@@ -25,7 +25,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
-	github.com/samber/mo v1.16.0 // indirect
+	github.com/samber/mo v1.17.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
