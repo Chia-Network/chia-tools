@@ -1,5 +1,7 @@
 github.com/chia-network/go-chia-libs v1.3.2 h1:tekL22oKFOKeRVWMt28jFTzB2o2OPbvQJ7xZN/ykzS0=
 github.com/chia-network/go-chia-libs v1.3.2/go.mod h1:2Ud+G6/JdMruQol9Jg8dEe9BvEeDXV0lUXJayT1ujHQ=
+github.com/chia-network/go-chia-libs v1.3.3 h1:Bfd8Sj84ocqhATNYjqRvomtPudtKiuifDd+tJi1DDQk=
+github.com/chia-network/go-chia-libs v1.3.3/go.mod h1:sZcHu3x4RewgUKDKHihdiSLgpdZ2ywJocy3I4w1BFN0=
 github.com/chia-network/go-modules v1.0.0 h1:GtEFYa0Xu8TCuCj8MdXRyEiacecAH/Ub9wZB4PzEArA=
 github.com/chia-network/go-modules v1.0.0/go.mod h1:874YChL82KTnkfVJOsEXhOyb43cblp1O4rvWDonVw1U=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
@@ -38,6 +40,8 @@ github.com/sagikazarmark/locafero v0.12.0 h1:/NQhBAkUb4+fH1jivKHWusDYFjMOOKU88ee
 github.com/sagikazarmark/locafero v0.12.0/go.mod h1:sZh36u/YSZ918v0Io+U9ogLYQJ9tLLBmM4eneO6WwsI=
 github.com/samber/mo v1.16.0 h1:qpEPCI63ou6wXlsNDMLE0IIN8A+devbGX/K1xdgr4b4=
 github.com/samber/mo v1.16.0/go.mod h1:DlgzJ4SYhOh41nP1L9kh9rDNERuf8IqWSAs+gj2Vxag=
+github.com/samber/mo v1.17.0 h1:EbeLc7nxIdpalstxQQakLOcXxULuMRqo7PJPtY18bQg=
+github.com/samber/mo v1.17.0/go.mod h1:DlgzJ4SYhOh41nP1L9kh9rDNERuf8IqWSAs+gj2Vxag=
 github.com/spf13/afero v1.15.0 h1:b/YBCLWAJdFWJTN9cLhiXXcD7mzKn9Dm86dNnfyQw1I=
 github.com/spf13/afero v1.15.0/go.mod h1:NC2ByUVxtQs4b3sIUphxK0NioZnmxgyCrfzeuq8lxMg=
 github.com/spf13/cast v1.10.0 h1:h2x0u2shc1QuLHfxi+cTJvs30+ZAHOGRic8uyGTDWxY=
