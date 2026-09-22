@@ -1,15 +1,15 @@
 module github.com/chia-network/chia-tools
 
-go 1.25.0
+go 1.26.0
 
 require (
-	github.com/chia-network/go-chia-libs v1.3.4
+	github.com/chia-network/go-chia-libs v1.4.0
 	github.com/chia-network/go-modules v1.0.1
 	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/sys v0.47.0
+	golang.org/x/sys v0.48.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
