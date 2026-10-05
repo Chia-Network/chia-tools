@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/ptr"
@@ -51,14 +52,27 @@ var generateCmd = &cobra.Command{
 			value := cast.ToUint8(viper.Get("tn-gen-plot-v1-phase-out-epoch-bits"))
 			constants.PlotV1PhaseOutEpochBits = &value
 		}
-		if viper.IsSet("tn-gen-plot-filter-v2-first-adjustment-height") {
-			constants.PlotFilterV2FirstAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-first-adjustment-height"))
+		if viper.IsSet("tn-gen-plot-filter-v2-relative-height") {
+			raw := cast.ToUintSlice(viper.Get("tn-gen-plot-filter-v2-relative-height"))
+			if len(raw) != config.PlotFilterV2RelativeHeightLen {
+				slogs.Logr.Fatal("plot-filter-v2-relative-height must have exactly 9 entries (reverse chronological, relative to hard-fork2-height)", "got", len(raw))
+			}
+			heights := make([]uint32, 0, len(raw))
+			for _, h := range raw {
+				if h > math.MaxUint32 {
+					slogs.Logr.Fatal("plot-filter-v2-relative-height entry exceeds uint32", "value", h)
+				}
+				heights = append(heights, uint32(h))
+			}
+			constants.PlotFilterV2RelativeHeight = heights
 		}
-		if viper.IsSet("tn-gen-plot-filter-v2-second-adjustment-height") {
-			constants.PlotFilterV2SecondAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-second-adjustment-height"))
+		if viper.IsSet("tn-gen-filter-window-size") {
+			value := cast.ToUint8(viper.Get("tn-gen-filter-window-size"))
+			constants.FilterWindowSize = &value
 		}
-		if viper.IsSet("tn-gen-plot-filter-v2-third-adjustment-height") {
-			constants.PlotFilterV2ThirdAdjustmentHeight = ptr.Uint32Ptr(viper.GetUint32("tn-gen-plot-filter-v2-third-adjustment-height"))
+		if viper.IsSet("tn-gen-max-effective-plot-filter-bits") {
+			value := cast.ToUint8(viper.Get("tn-gen-max-effective-plot-filter-bits"))
+			constants.MaxEffectivePlotFilterBits = &value
 		}
 		if viper.IsSet("tn-gen-soft-fork-8-9-height") {
 			constants.SoftFork8Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-soft-fork-8-9-height"))
@@ -115,9 +129,9 @@ func init() {
 	generateCmd.PersistentFlags().Uint32("hard-fork2-height", uint32(0), "Block height when the 3.0 hard fork will activate")
 	generateCmd.PersistentFlags().Uint8("number-zero-bits-plot-filter-v2", uint8(0), "Number of leading zeroes required to pass plot ID filter (post hard fork only)")
 	generateCmd.PersistentFlags().Uint8("plot-v1-phase-out-epoch-bits", uint8(0), "Number of bits in phase out period (eg 8 bits = 256 epochs)")
-	generateCmd.PersistentFlags().Uint32("plot-filter-v2-first-adjustment-height", uint32(0), "Block height of first base filter halving")
-	generateCmd.PersistentFlags().Uint32("plot-filter-v2-second-adjustment-height", uint32(0), "Block height of second base filter halving")
-	generateCmd.PersistentFlags().Uint32("plot-filter-v2-third-adjustment-height", uint32(0), "Block height of third base filter halving")
+	generateCmd.PersistentFlags().UintSlice("plot-filter-v2-relative-height", []uint{}, "Comma-separated list of exactly 9 heights relative to hard-fork2-height where the v2 base plot filter drops by one bit, in reverse chronological order (first entry activates last)")
+	generateCmd.PersistentFlags().Uint8("filter-window-size", uint8(0), "Number of signage points per v2 plot filter window (mainnet 16)")
+	generateCmd.PersistentFlags().Uint8("max-effective-plot-filter-bits", uint8(0), "Cap on the effective v2 plot filter bits (mainnet 13)")
 	// Soft fork 8/9 testing option
 	generateCmd.PersistentFlags().Uint32("soft-fork-8-9-height", uint32(0), "Block height to activate soft fork 8 and 9")
 	// Output format options
@@ -137,9 +151,9 @@ func init() {
 	cobra.CheckErr(viper.BindPFlag("tn-gen-hard-fork2-height", generateCmd.PersistentFlags().Lookup("hard-fork2-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-number-zero-bits-plot-filter-v2", generateCmd.PersistentFlags().Lookup("number-zero-bits-plot-filter-v2")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-v1-phase-out-epoch-bits", generateCmd.PersistentFlags().Lookup("plot-v1-phase-out-epoch-bits")))
-	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-first-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-first-adjustment-height")))
-	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-second-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-second-adjustment-height")))
-	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-third-adjustment-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-third-adjustment-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-plot-filter-v2-relative-height", generateCmd.PersistentFlags().Lookup("plot-filter-v2-relative-height")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-filter-window-size", generateCmd.PersistentFlags().Lookup("filter-window-size")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-max-effective-plot-filter-bits", generateCmd.PersistentFlags().Lookup("max-effective-plot-filter-bits")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-soft-fork-8-9-height", generateCmd.PersistentFlags().Lookup("soft-fork-8-9-height")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-as-json", generateCmd.PersistentFlags().Lookup("as-json")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-with-constants", generateCmd.PersistentFlags().Lookup("with-constants")))
