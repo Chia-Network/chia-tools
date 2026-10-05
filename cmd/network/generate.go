@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
 	"github.com/chia-network/go-chia-libs/pkg/ptr"
@@ -53,7 +54,12 @@ var generateCmd = &cobra.Command{
 			constants.PlotV1PhaseOutEpochBits = &value
 		}
 		if viper.IsSet("tn-gen-plot-filter-v2-relative-height") {
-			raw := cast.ToUintSlice(viper.Get("tn-gen-plot-filter-v2-relative-height"))
+			// CLI/pflag yields []uint; env/config may yield a comma-separated string.
+			value := viper.Get("tn-gen-plot-filter-v2-relative-height")
+			if s, ok := value.(string); ok {
+				value = strings.Split(s, ",")
+			}
+			raw := cast.ToUintSlice(value)
 			if len(raw) != config.PlotFilterV2RelativeHeightLen {
 				slogs.Logr.Fatal("plot-filter-v2-relative-height must have exactly 9 entries (reverse chronological, relative to hard-fork2-height)", "got", len(raw))
 			}
