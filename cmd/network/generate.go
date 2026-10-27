@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/chia-network/go-chia-libs/pkg/config"
@@ -23,6 +24,15 @@ var generateCmd = &cobra.Command{
 	Use:     "generate",
 	Short:   "Generates new network constants",
 	Example: "chia-tools network generate --network examplenet",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if viper.IsSet("tn-gen-max-plot-strength") {
+			value, err := strconv.ParseUint(fmt.Sprint(viper.Get("tn-gen-max-plot-strength")), 10, 8)
+			if err != nil || value < 2 {
+				return fmt.Errorf("max-plot-strength must be an integer between 2 and 255")
+			}
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		networkName := viper.GetString("tn-gen-network")
 		genesisHashBytes := sha256.Sum256([]byte(networkName))
@@ -41,6 +51,10 @@ var generateCmd = &cobra.Command{
 			NetworkType:                    1,
 			SubSlotItersStarting:           viper.GetUint64("tn-gen-sub-slot-iters-starting"),
 			HardForkHeight:                 ptr.Uint32Ptr(0),
+		}
+		if viper.IsSet("tn-gen-max-plot-strength") {
+			value := cast.ToUint8(viper.Get("tn-gen-max-plot-strength"))
+			constants.MaxPlotStrength = &value
 		}
 		if viper.IsSet("tn-gen-hard-fork2-height") {
 			constants.HardFork2Height = ptr.Uint32Ptr(viper.GetUint32("tn-gen-hard-fork2-height"))
@@ -126,6 +140,7 @@ func init() {
 	generateCmd.PersistentFlags().String("pre-farm-farmer-puz-hash", "08296fc227decd043aee855741444538e4cc9a31772c4d1a9e6242d1e777e42a", "Specify the value for GENESIS_PRE_FARM_FARMER_PUZZLE_HASH")
 	generateCmd.PersistentFlags().String("pre-farm-pool-puz-hash", "08296fc227decd043aee855741444538e4cc9a31772c4d1a9e6242d1e777e42a", "Specify the value for GENESIS_PRE_FARM_POOL_PUZZLE_HASH")
 	generateCmd.PersistentFlags().Uint8("min-plot-size", uint8(18), "Specify the minimum plot size MIN_PLOT_SIZE")
+	generateCmd.PersistentFlags().Uint8("max-plot-strength", uint8(0), "Override MAX_PLOT_STRENGTH (omitted unless set; mainnet default 17)")
 	generateCmd.PersistentFlags().Uint8("mempool-block-buffer", uint8(10), "Specify MEMPOOL_BLOCK_BUFFER")
 	generateCmd.PersistentFlags().Uint32("epoch-blocks", uint32(768), "specify EPOCH_BLOCKS")
 	generateCmd.PersistentFlags().Uint64("difficulty-starting", uint64(250), "Specify starting difficulty")
@@ -149,6 +164,7 @@ func init() {
 	cobra.CheckErr(viper.BindPFlag("tn-gen-pre-farm-farmer-puz-hash", generateCmd.PersistentFlags().Lookup("pre-farm-farmer-puz-hash")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-pre-farm-pool-puz-hash", generateCmd.PersistentFlags().Lookup("pre-farm-pool-puz-hash")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-min-plot-size", generateCmd.PersistentFlags().Lookup("min-plot-size")))
+	cobra.CheckErr(viper.BindPFlag("tn-gen-max-plot-strength", generateCmd.PersistentFlags().Lookup("max-plot-strength")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-mempool-block-buffer", generateCmd.PersistentFlags().Lookup("mempool-block-buffer")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-epoch-blocks", generateCmd.PersistentFlags().Lookup("epoch-blocks")))
 	cobra.CheckErr(viper.BindPFlag("tn-gen-difficulty-starting", generateCmd.PersistentFlags().Lookup("difficulty-starting")))
